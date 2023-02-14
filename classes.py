@@ -1,6 +1,6 @@
 import pygame
 
-class Enemy(pygame.sprite.Sprite):
+class Entity(pygame.sprite.Sprite):
 
     def __init__(self, pos_x, pos_y):
         
@@ -25,28 +25,28 @@ class Enemy(pygame.sprite.Sprite):
     def move(self, pos_x, pos_y):
         self.rect.topleft = [pos_x, pos_y]
         
-class Player(Enemy, pygame.sprite.Sprite):
+class Player(Entity, pygame.sprite.Sprite):
     
     def __init__(self, pos_x, pos_y):
         super().__init__(pos_x, pos_y)
         self.sprites = [pygame.image.load('./assets/textures/player.png').convert_alpha(),
                            pygame.image.load('./assets/textures/player.png').convert_alpha()]
         
-class Crabe(Enemy, pygame.sprite.Sprite):
+class Crabe(Entity, pygame.sprite.Sprite):
     
     def __init__(self, pos_x, pos_y):
         super().__init__(pos_x, pos_y)
         self.sprites = [pygame.image.load('./assets/textures/crabe_0.png').convert_alpha(),
                            pygame.image.load('./assets/textures/crabe_1.png').convert_alpha()]
         
-class Poulpe(Enemy, pygame.sprite.Sprite):
+class Poulpe(Entity, pygame.sprite.Sprite):
     
     def __init__(self, pos_x, pos_y):
         super().__init__(pos_x, pos_y)
         self.sprites = [pygame.image.load('./assets/textures/poulpe_0.png').convert_alpha(),
                            pygame.image.load('./assets/textures/poulpe_1.png').convert_alpha()]
         
-class Meduse(Enemy, pygame.sprite.Sprite):
+class Meduse(Entity, pygame.sprite.Sprite):
     
     def __init__(self, pos_x, pos_y):
         super().__init__(pos_x, pos_y)

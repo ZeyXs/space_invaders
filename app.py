@@ -1,4 +1,6 @@
-import pygame, os, sys
+import os, sys
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+import pygame
 from utils import *
 from classes import *
 
@@ -8,7 +10,7 @@ BLACK = (0,0,0)
 GREEN = (0,255,0)
 RED = (255,0,0)
 
-WIDTH, HEIGHT = 256, 224
+WIDTH, HEIGHT = 210, 264
 FPS = 60
 SCALING_FACTOR = 3
 
@@ -24,15 +26,6 @@ class App:
         self.screen = pygame.Surface((WIDTH, HEIGHT))
 
         # Importation des textures
-            # - Sprites
-        self.player_img = pygame.image.load("./assets/textures/player.png").convert_alpha()
-        self.crabe_0_img = pygame.image.load("./assets/textures/crabe_0.png").convert_alpha()
-        self.crabe_1_img = pygame.image.load("./assets/textures/crabe_1.png").convert_alpha()
-        self.meduse_0_img = pygame.image.load("./assets/textures/meduse_0.png").convert_alpha()
-        self.meduse_1_img = pygame.image.load("./assets/textures/meduse_1.png").convert_alpha()
-        self.poulpe_0_img = pygame.image.load("./assets/textures/poulpe_0.png").convert_alpha()
-        self.poulpe_1_img = pygame.image.load("./assets/textures/poulpe_1.png").convert_alpha()
-
             # - Icon
         icon = pygame.image.load('./assets/textures/icon.png').convert_alpha()
             # - Font
@@ -59,8 +52,8 @@ class App:
 
             # - Ennemis
         rang = 0
-        for y in range(30, HEIGHT-130, 15):
-            for x in range(30, WIDTH-100, 15):
+        for y in range(40, HEIGHT-130, 15):
+            for x in range(25, WIDTH-30, 15):
                 if rang==0:
                     self.enemies.append(Meduse(x+1.9, y))
                 elif rang<=2:
@@ -71,7 +64,20 @@ class App:
             
     # Lancement de l'application
     def run(self):
+
+        self.menu_id = 0
+        # si self.menu_id = 0
+        #    -> Main Menu
         
+        # si self.menu_id = 1
+        #    -> Game
+
+        # si self.menu_id = 2
+        #    -> Options Menu
+
+        # si self.menu_id = 3
+        #    -> Crédits
+
         while self.running:
             self.clock.tick(FPS)
             self.keys_pressed = pygame.key.get_pressed()
@@ -80,32 +86,51 @@ class App:
                 if event.type == pygame.QUIT:
                     self.running = False
 
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_LEFT:
-                        pass                
+            # MAIN MENU
+            if self.menu_id == 0:
+                if self.keys_pressed[pygame.K_SPACE]:
+                    self.menu_id = 1
+
+            # IN-GAME
+            if self.menu_id == 1:
+                # CONTROLS
+                if self.keys_pressed[pygame.K_LEFT] and self.player.rect.x - 1 > 0:
+                    self.player.rect.x -= 1
+                if self.keys_pressed[pygame.K_RIGHT] and self.player.rect.x + 1 + self.player.image.get_rect().width < WIDTH:
+                    self.player.rect.x += 1 
                     
             self.draw_on_screen()
                     
         pygame.quit()
         sys.exit()
     
-
     # Update de la fenêtre - Draw on screen
     def draw_on_screen(self):
         self.screen.fill(BLACK)
 
-        # Affichage du texte
-        tmp_test_font = self.font.render("SCORE<1> HI-SCORE SCORE<2>", 0, WHITE)
-        self.screen.blit(tmp_test_font, (WIDTH - tmp_test_font.get_width() - 100, 10))
-        
-        # Affichage des entitées
-        self.screen.blit(self.player.image, (self.player.rect.x, self.player.rect.y))
-        self.player.update()
+        # MAIN MENU
+        if self.menu_id == 0:
+            # Display Game Icon
 
-        for enemy in self.enemies:
-            self.screen.blit(enemy.image, (enemy.rect.x,enemy.rect.y))
-            enemy.update()
-        
+            # Display text
+            tmp_font = self.font.render("> JOUER <", 0, WHITE)
+            self.screen.blit(tmp_font, (WIDTH - tmp_font.get_width()*1.5, HEIGHT))
+
+        # IN-GAME
+        elif self.menu_id == 1:
+
+            # Affichage du texte
+            tmp_test_font = self.font.render("SCORE<1>  HI-SCORE  SCORE<2>", 0, WHITE)
+            self.screen.blit(tmp_test_font, (WIDTH - tmp_test_font.get_width()*1.25, 10))
+            
+            # Affichage des entitées
+            self.screen.blit(self.player.image, (self.player.rect.x, self.player.rect.y))
+            self.player.update()
+
+            for enemy in self.enemies:
+                self.screen.blit(enemy.image, (enemy.rect.x,enemy.rect.y))
+                enemy.update()
+            
 
         # Redimension de la fenêtre
         self.window.blit(pygame.transform.scale(self.screen, self.window.get_rect().size), (0, 0))
