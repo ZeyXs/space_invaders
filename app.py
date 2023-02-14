@@ -32,6 +32,7 @@ class App:
         self.meduse_1_img = pygame.image.load("./assets/textures/meduse_1.png").convert_alpha()
         self.poulpe_0_img = pygame.image.load("./assets/textures/poulpe_0.png").convert_alpha()
         self.poulpe_1_img = pygame.image.load("./assets/textures/poulpe_1.png").convert_alpha()
+
             # - Icon
         icon = pygame.image.load('./assets/textures/icon.png').convert_alpha()
             # - Font
@@ -49,15 +50,25 @@ class App:
         self.clock = pygame.time.Clock()
         self.running = True
         
+
         # Création des entités
             # - Joueur
-        self.player = Player(gen_rect(WIDTH/2-(self.player_img.get_width()/2), 201, self.player_img), self.player_img)
+        self.player = Player(0, 0)
+        self.player.move(WIDTH/2-(self.player.image.get_width()/2), 201)
+        #self.player = Player(gen_rect(WIDTH/2-(self.player_img.get_width()/2), 201, self.player_img), self.player_img)
+
             # - Ennemis
-        for y in range(30, HEIGHT-100, 12):
+        rang = 0
+        for y in range(30, HEIGHT-130, 15):
             for x in range(30, WIDTH-100, 15):
-                self.enemies.append(Enemy(Type.CRABE, gen_rect(x, y, self.crabe_0_img), self.crabe_0_img, 5))
-                
-    
+                if rang==0:
+                    self.enemies.append(Meduse(x+1.9, y))
+                elif rang<=2:
+                    self.enemies.append(Crabe(x+0.5, y))
+                elif rang<=4:
+                    self.enemies.append(Poulpe(x, y))
+            rang+=1
+            
     # Lancement de l'application
     def run(self):
         
@@ -84,13 +95,17 @@ class App:
         self.screen.fill(BLACK)
 
         # Affichage du texte
-        tmp_test_font = self.font.render("HI-SCORE <1>", 0, WHITE)
-        self.screen.blit(tmp_test_font, (WIDTH - tmp_test_font.get_width() - 10, 10))
+        tmp_test_font = self.font.render("SCORE<1> HI-SCORE SCORE<2>", 0, WHITE)
+        self.screen.blit(tmp_test_font, (WIDTH - tmp_test_font.get_width() - 100, 10))
         
         # Affichage des entitées
-        self.screen.blit(self.player.texture, (self.player.rect.x, self.player.rect.y))
+        self.screen.blit(self.player.image, (self.player.rect.x, self.player.rect.y))
+        self.player.update()
+
         for enemy in self.enemies:
-            self.screen.blit(enemy.texture, (enemy.rect.x,enemy.rect.y))
+            self.screen.blit(enemy.image, (enemy.rect.x,enemy.rect.y))
+            enemy.update()
+        
 
         # Redimension de la fenêtre
         self.window.blit(pygame.transform.scale(self.screen, self.window.get_rect().size), (0, 0))

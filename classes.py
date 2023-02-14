@@ -1,18 +1,57 @@
 import pygame
 
-class Player:
+class Enemy(pygame.sprite.Sprite):
 
-    def __init__(self, rect, texture):
-        self.rect = rect
-        self.texture = texture
+    def __init__(self, pos_x, pos_y):
+        
+        self.sprites = [pygame.image.load('./assets/textures/player.png').convert_alpha(),
+                        pygame.image.load('./assets/textures/player.png').convert_alpha()]
+        
+        self.current_sprite = 0
+        self.image = self.sprites[self.current_sprite]
+        
+        self.rect = self.image.get_rect()
+        self.rect.topleft = [pos_x,pos_y]
 
-class Enemy:
+    def update(self):
+        self.current_sprite += 0.015
 
-    def __init__(self, type, rect, texture, speed):
-        self.type = type
-        self.rect = rect
-        self.texture = texture
-        self.speed = speed
+        if self.current_sprite >= len(self.sprites):
+            self.current_sprite = 0
+            
+        
+        self.image = self.sprites[int(self.current_sprite)]
+        
+    def move(self, pos_x, pos_y):
+        self.rect.topleft = [pos_x, pos_y]
+        
+class Player(Enemy, pygame.sprite.Sprite):
+    
+    def __init__(self, pos_x, pos_y):
+        super().__init__(pos_x, pos_y)
+        self.sprites = [pygame.image.load('./assets/textures/player.png').convert_alpha(),
+                           pygame.image.load('./assets/textures/player.png').convert_alpha()]
+        
+class Crabe(Enemy, pygame.sprite.Sprite):
+    
+    def __init__(self, pos_x, pos_y):
+        super().__init__(pos_x, pos_y)
+        self.sprites = [pygame.image.load('./assets/textures/crabe_0.png').convert_alpha(),
+                           pygame.image.load('./assets/textures/crabe_1.png').convert_alpha()]
+        
+class Poulpe(Enemy, pygame.sprite.Sprite):
+    
+    def __init__(self, pos_x, pos_y):
+        super().__init__(pos_x, pos_y)
+        self.sprites = [pygame.image.load('./assets/textures/poulpe_0.png').convert_alpha(),
+                           pygame.image.load('./assets/textures/poulpe_1.png').convert_alpha()]
+        
+class Meduse(Enemy, pygame.sprite.Sprite):
+    
+    def __init__(self, pos_x, pos_y):
+        super().__init__(pos_x, pos_y)
+        self.sprites = [pygame.image.load('./assets/textures/meduse_0.png').convert_alpha(),
+                           pygame.image.load('./assets/textures/meduse_1.png').convert_alpha()]
 
 class Projectile:
 
@@ -26,7 +65,4 @@ class Team:
     PLAYER = 0
     ENEMY = 1
     
-class Type:
-    MEDUSE = 0
-    CRABE = 1
-    POULPE = 2
+#class Bouclier:
