@@ -66,6 +66,7 @@ class App:
     def run(self):
 
         self.menu_id = 0
+        self.button_choice = 0
         # si self.menu_id = 0
         #    -> Main Menu
         
@@ -88,12 +89,21 @@ class App:
 
             # MAIN MENU
             if self.menu_id == 0:
-                if self.keys_pressed[pygame.K_SPACE]:
+                # controls
+                if self.keys_pressed[pygame.K_RETURN]:
                     self.menu_id = 1
+
+                if self.keys_pressed[pygame.K_UP]:
+                    if self.button_choice > 2:
+                        self.button_choice = 0
+                    elif self.button_choice < 0:
+                        self.button_choice = 2
+                    else:
+                        self.button_choice += 1
 
             # IN-GAME
             if self.menu_id == 1:
-                # CONTROLS
+                # controls
                 if self.keys_pressed[pygame.K_LEFT] and self.player.rect.x - 1 > 0:
                     self.player.rect.x -= 1
                 if self.keys_pressed[pygame.K_RIGHT] and self.player.rect.x + 1 + self.player.image.get_rect().width < WIDTH:
@@ -113,14 +123,35 @@ class App:
             # Display Game Icon
 
             # Display text
-            tmp_font = self.font.render("> JOUER <", 0, WHITE)
-            self.screen.blit(tmp_font, (WIDTH - tmp_font.get_width()*1.5, HEIGHT))
+            if self.button_choice == 0:
+                tmp_font = self.font.render("> JOUER <", 0, WHITE)
+                self.screen.blit(tmp_font, ((WIDTH - tmp_font.get_width())/2, 100))
+                tmp_font = self.font.render("OPTIONS", 0, WHITE)
+                self.screen.blit(tmp_font, ((WIDTH - tmp_font.get_width())/2, 120))
+                tmp_font = self.font.render("CREDITS", 0, WHITE)
+                self.screen.blit(tmp_font, ((WIDTH - tmp_font.get_width())/2, 140))
+
+            elif self.button_choice == 1:
+                tmp_font = self.font.render("JOUER", 0, WHITE)
+                self.screen.blit(tmp_font, ((WIDTH - tmp_font.get_width())/2, 100))
+                tmp_font = self.font.render("> OPTIONS <", 0, WHITE)
+                self.screen.blit(tmp_font, ((WIDTH - tmp_font.get_width())/2, 120))
+                tmp_font = self.font.render("CREDITS", 0, WHITE)
+                self.screen.blit(tmp_font, ((WIDTH - tmp_font.get_width())/2, 140))
+
+            if self.button_choice == 2:
+                tmp_font = self.font.render("JOUER", 0, WHITE)
+                self.screen.blit(tmp_font, ((WIDTH - tmp_font.get_width())/2, 100))
+                tmp_font = self.font.render("OPTIONS", 0, WHITE)
+                self.screen.blit(tmp_font, ((WIDTH - tmp_font.get_width())/2, 120))
+                tmp_font = self.font.render("> CREDITS <", 0, WHITE)
+                self.screen.blit(tmp_font, ((WIDTH - tmp_font.get_width())/2, 140))
 
         # IN-GAME
         elif self.menu_id == 1:
 
             # Affichage du texte
-            tmp_test_font = self.font.render("SCORE<1>  HI-SCORE  SCORE<2>", 0, WHITE)
+            tmp_test_font = self.font.render("SCORE<1>    HI-SCORE    SCORE<2>", 0, WHITE)
             self.screen.blit(tmp_test_font, (WIDTH - tmp_test_font.get_width()*1.25, 10))
             
             # Affichage des entitées
