@@ -23,8 +23,7 @@ class App:
         pygame.font.init()
         
         # Initialisation de la fenêtre
-        self.config = Config("./assets/config.json")
-        self.config.get("option.music")
+        self.config = Config("assets/config.json")
         self.window = pygame.display.set_mode((WIDTH*SCALING_FACTOR, HEIGHT*SCALING_FACTOR))
         self.screen = pygame.Surface((WIDTH, HEIGHT))
 
