@@ -1,0 +1,13 @@
+{
+    "lang": {
+        "test.test": "Test!!!"
+    },
+    "option": {
+        "number_of_life": 4,
+        "ennemies_speed": 1,
+        "unbreakable_shield": false,
+        "retro_mode": true,
+        "music": true,
+        "highest_score": 0
+    }
+}

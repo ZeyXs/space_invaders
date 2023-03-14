@@ -3,9 +3,10 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 from utils import *
 from classes import *
+from config import *
 
 # Constantes
-WHITE = (255,255,255)
+WHITE = (230,230,230)
 BLACK = (0,0,0)
 GREEN = (0,255,0)
 RED = (255,0,0)
@@ -22,6 +23,8 @@ class App:
         pygame.font.init()
         
         # Initialisation de la fenêtre
+        self.config = Config("./assets/config.json")
+        self.config.get("option.music")
         self.window = pygame.display.set_mode((WIDTH*SCALING_FACTOR, HEIGHT*SCALING_FACTOR))
         self.screen = pygame.Surface((WIDTH, HEIGHT))
 
@@ -30,7 +33,7 @@ class App:
         
         self.font_6 = pygame.font.Font("./assets/fonts/space_invaders.ttf", 6)
         self.font_8 = pygame.font.Font("./assets/fonts/space_invaders.ttf", 8)
-        self.font_14 = pygame.font.Font("./assets/fonts/space_invaders.ttf", 24)
+        self.font_14 = pygame.font.Font("./assets/fonts/space_invaders.ttf", 16)
 
         self.logo = pygame.image.load('./assets/textures/title.png').convert_alpha()
         self.logo = pygame.transform.scale(self.logo,(193,83))
@@ -68,13 +71,41 @@ class App:
     def run(self):
 
         self.menu_id = 0
+        # Aide :
+        #   - 0 = Main Menu
+        #   - 1 = In-Game
+        #   - 2 = Options
+        #   - 3 = Credits
+
+        self.pointeur_vert = 0
+        self.pointeur_hori = 0
+
+        # lignes à supprimer
+        """
         self.button_choice = 0
         self.button_choice2 = 0
-        self.options = []
+        self.options = [2,1,1,0,0]
+        """
+
+        self.options_list = ["option.number_of_life", "option.ennemies_speed", "unbreakable_shield", "retro_mode", "music"] 
+
+        def save_into_json(self, elm):
+            self.Config.put(elm, self.current_menu_options[self.pointeur_vert][self.pointeur_hori])
+
+        def get_index_from_json(self, elm):
+            self.alt_value = self.Config.get(elm)
+            self.index_vert = self.options_list.index(elm)
+            self.index_hori = self.current_menu_options[self.index_vert].index(elm)
 
         while self.running:
             self.clock.tick(FPS)
             self.keys_pressed = pygame.key.get_pressed()
+            
+            if self.menu_id == 0 or self.menu_id == 3:
+                self.current_menu_options = [[0],[0],[0]]
+
+            elif self.menu_id == 2:
+                self.current_menu_options = [[0], [1,2,3,4,5], [1,2,3], [True,False], [True,False], [True,False]]
             
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -82,18 +113,45 @@ class App:
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
-                        self.button_choice -= 1
-                            
+                        self.pointeur_vert -= 1
+                        if self.pointeur_vert < 0:
+                            self.pointeur_vert = len(self.current_menu_options)-1
+
                     elif event.key == pygame.K_DOWN:
-                        self.button_choice += 1
+                        self.pointeur_vert += 1
+                        if self.pointeur_vert > len(self.current_menu_options)-1:
+                            self.pointeur_vert = 0
                         
                     elif event.key == pygame.K_LEFT:
-                        self.button_choice2 += 1
+                        self.pointeur_hori -= 1
+                        if self.pointeur_hori < 0:
+                            self.pointeur_hori = len(self.current_menu_options[self.pointeur_vert])-1
+                        save_into_json(self.options_list[self.pointeur_vert])
                     
                     elif event.key == pygame.K_RIGHT:
-                        self.button_choice2 -= 1
+                        self.pointeur_hori += 1
+                        if self.pointeur_hori > len(self.current_menu_options[self.pointeur_vert])-1:
+                            self.pointeur_hori = 0
+                        save_into_json(self.options_list[self.pointeur_vert])
+                    
+                    elif event.key == pygame.K_RETURN:
+                        if self.pointeur_vert == 0 and self.menu_id != 1:
+                            self.menu_id = 0
+
+                        if self.pointeur_vert == 0:
+                            self.menu_id = 1
+
+                        if self.pointeur_vert == 1:
+                            self.menu_id = 2
+                        
+                        if self.pointeur_vert == 2:
+                            self.menu_id = 3
+
+                    print("pointeur_vert = " + str(self.pointeur_vert))
+                    print("pointeur_hori = " + str(self.pointeur_hori))
 
             # --- MAIN MENU ---
+            """
             if self.menu_id == 0:
                 # controls
                 if self.keys_pressed[pygame.K_RETURN]:
@@ -109,21 +167,25 @@ class App:
                 
                 if self.button_choice < 0:
                     self.button_choice = 2
-
+                
                 if self.button_choice > 2:
                     self.button_choice = 0
-            
+            """
             # --- IN-GAME ---
-            elif self.menu_id == 1:
+            if self.menu_id == 1:
                 # controls
                 if self.keys_pressed[pygame.K_LEFT] and self.player.rect.x - 1 > 0:
                     self.player.rect.x -= 1
                 if self.keys_pressed[pygame.K_RIGHT] and self.player.rect.x + 1 + self.player.image.get_rect().width < WIDTH:
-                    self.player.rect.x += 1 
+                    self.player.rect.x += 1
             
             # --- OPTIONS ---
-            elif self.menu_id == 2:
+            """elif self.menu_id == 2:
                 # controls
+                #if self.keys_pressed[pygame.K_RETURN]:
+                    # Player chooses PLAY
+                    #if self.button_choice == 0:
+                    #    self.menu_id = 0
                     # options verticales
                 if self.button_choice < 0:
                     self.button_choice = 2
@@ -131,7 +193,11 @@ class App:
                 elif self.button_choice > 5:
                     self.button_choice = 0
                     # options horizontales
-            
+                
+                #self.button_choice2 = self.options[self.button_choice]
+                if self.button_choice2 == 0:
+                    pass
+            """        
             
             self.draw_on_screen()
                     
@@ -165,58 +231,61 @@ class App:
     def draw_main_menu(self):
         # Display Game Icon
         self.screen.blit(self.logo,((WIDTH - self.logo.get_width())/2, 10))
-            
+        menu = [["> JOUER <","OPTIONS","CREDITS"],["JOUER","> OPTIONS <","CREDITS"],["JOUER","OPTIONS","> CREDITS <"]]    
         # Display text
-        if self.button_choice == 0:
-            self._draw_text("> JOUER <", WHITE, self.font_14, None, 150, True)
-            self._draw_text("OPTIONS", WHITE, self.font_14, None, 170, True)
-            self._draw_text("CREDITS", WHITE, self.font_14, None, 190, True)
-        elif self.button_choice == 1:
-            self._draw_text("JOUER", WHITE, self.font_14, None, 150, True)
-            self._draw_text("> OPTIONS <", WHITE, self.font_14, None, 170, True)
-            self._draw_text("CREDITS", WHITE, self.font_14, None, 190, True)
-        elif self.button_choice == 2:
-            self._draw_text("JOUER", WHITE, self.font_14, None, 150, True)
-            self._draw_text("OPTIONS", WHITE, self.font_14, None, 170, True)
-            self._draw_text("> CREDITS <", WHITE, self.font_14, None, 190, True)
+        for i in range(3):
+            self._draw_text(menu[self.pointeur_vert][i], WHITE, self.font_14, None, 140+(i*30), True)
     
     
     def draw_options(self):
         # Display text
-        self.button_choice = 0
-        if self.button_choice == 0:
-            self._draw_text("> RETOUR <", WHITE, self.font_14, None, 60, True)
-            self._draw_text("NOMBRE DE VIES :", WHITE, self.font_14, None, 80, True)
-            self._draw_text("1 / 2 / 3 / 4 / 5", WHITE, self.font_14, None, 90, True)
-            self._draw_text("VITESSE DES ENNEMIS :", WHITE, self.font_14, None, 110, True)
-            self._draw_text("LENTE / MOYENNE / RAPIDE", WHITE, self.font_14, None, 120, True)
-            self._draw_text("BOUCLIERS INCASSABLES :", WHITE, self.font_14, None, 140, True)
-            self._draw_text("OUI / NON", WHITE, self.font_14, None, 150, True)
-            self._draw_text("MODE RETRO :", WHITE, self.font_14, None, 170, True)
-            self._draw_text("OUI / NON", WHITE, self.font_14, None, 180, True)
-            self._draw_text("MUSIQUE :", WHITE, self.font_14, None, 200, True)
-            self._draw_text("OUI / NON", WHITE, self.font_14, None, 210, True)
+        str_retour=["RETOUR", "> RETOUR <"]
+        str_vies=["NOMBRE DE VIES :", "> NOMBRE DE VIES : <"]
+        str_vitesse=["VITESSE DES ENNEMIS :", "> VITESSE DES ENNEMIS : <"]
+        str_boucliers=["BOUCLIERS INCASSABLES :", "> BOUCLIERS INCASSABLES : <"]
+        str_retro=["MODE RETRO :", "> MODE RETRO : <"]
+        str_musique=["MUSIQUE :", "> MUSIQUE : <"]
+        #self.pointeur_vert=0
+        #if self.pointeur_vert == 0:
+        t=[0,0,0,0,0,0]
+        t[self.pointeur_vert]=1
+        self._draw_text(str_retour[t[0]], WHITE, self.font_8, None, 60, True)
+        self._draw_text(str_vies[t[1]], WHITE, self.font_8, None, 80, True)
+        self._draw_text("1 / 2 / 3 / 4 / 5", WHITE, self.font_8, None, 90, True)
+        self._draw_text(str_vitesse[t[2]], WHITE, self.font_8, None, 110, True)
+        self._draw_text("LENTE / MOYENNE / RAPIDE", WHITE, self.font_8, None, 120, True)
+        self._draw_text(str_boucliers[t[3]], WHITE, self.font_8, None, 140, True)
+        self._draw_text("OUI / NON", WHITE, self.font_8, None, 150, True)
+        self._draw_text(str_retro[t[4]], WHITE, self.font_8, None, 170, True)
+        self._draw_text("OUI / NON", WHITE, self.font_8, None, 180, True)
+        self._draw_text(str_musique[t[5]], WHITE, self.font_8, None, 200, True)
+        self._draw_text("OUI / NON", WHITE, self.font_8, None, 210, True)
     
     
     def draw_credits(self):
     # Display text
+        str_credits = [
+            ["> RETOUR <",self.font_8,60],
+            ["CREE PAR : BASILE GAUTTRON,",self.font_8,100],
+            ["ROBIN DEROCH,",self.font_8, 110],
+            ["LAURE VAN LERBERGHE",self.font_8,120],
+            ["DEVELOPPE ORIGINALEMENT PAR :",self.font_8,140],
+            ["TAITO",self.font_8,150],
+            ["MUSIQUE: EVAN KING - WARNING",self.font_8,180],
+            ["https://youtu.be/M7Hw7g8bssY",self.font_6,191],
+            ["HTTPS://CONTEXTSENSITIVE.BANDCAMP.COM",self.font_6,200]
+            
+        ]
         self.button_choice = 0
         if self.button_choice == 0:
-            self._draw_text("> RETOUR <", WHITE, self.font_8, None, 60, True)
-            self._draw_text("CREE PAR : BASILE GAUTTRON,", WHITE, self.font_8, None, 100, True)
-            self._draw_text("ROBIN DEROCH,", WHITE, self.font_8, None, 110, True)
-            self._draw_text("LAURE VAN LERBERGHE", WHITE, self.font_8, None, 120, True)
-            self._draw_text("DEVELOPPE ORIGINALEMENT PAR :", WHITE, self.font_8, None, 140, True)
-            self._draw_text("TAITO", WHITE, self.font_8, None, 150, True)
-            self._draw_text("MUSIQUE: EVAN KING - WARNING", WHITE, self.font_8, None, 180, True)
-            self._draw_text("https://youtu.be/M7Hw7g8bssY", WHITE, self.font_6, None, 192, True)
-            self._draw_text("HTTPS://CONTEXTSENSITIVE.BANDCAMP.COM", WHITE, self.font_6 , None, 200, True)
+            for i in range(9):
+                self._draw_text(str_credits[i][0], WHITE, str_credits[i][1] , None, str_credits[i][2], True)
         
     
     def draw_game(self):
 
         # Affichage du texte
-        tmp_test_font = self.font_8.render("SCORE<1>    HI-SCORE    SCORE<2>", 0, WHITE)
+        tmp_test_font = self.font_8.render("SCORE<1>    HI-SCORE<2>", 0, WHITE)
         self.screen.blit(tmp_test_font, (WIDTH - tmp_test_font.get_width()*1.25, 10))
         
         # Affichage des entitées
@@ -229,7 +298,7 @@ class App:
         
         
     def _draw_text(self, text, color, font, x, y, align_center=False):
-        tmp_font = font.render(text, 0, color)
+        tmp_font = font.render(text, 0.2, color)
         if align_center:
             self.screen.blit(tmp_font, ((WIDTH - tmp_font.get_width())/2, y))
         else:

@@ -1,0 +1,51 @@
+
+{
+    "nb_de_vies" : 3,
+    "vitesse des ennemis" : 1,
+
+}
+
+
+
+Pseudo-code:
+
+Si in Options:
+    current_menu_options = [[0], [1,2,3,4,5], [1,2,3], [True,False], [True,False], [True,False]]
+    current_option =  ["option.number_of_life", "option.ennemies_speed", etc]
+
+pointeur_vert = 0;
+pointeur_hori = 0;
+
+Si UP:
+    pointeur_vert++;
+    Si pointeur_vert > longueur de current_menu_options - 1:
+        pointeur_vert = 0;
+
+Si DOWN:
+    pointeur_vert--;
+    Si pointeur_vert < 0:
+        pointeur_vert = longueur current_menu_options - 1;  
+
+Si RIGHT:
+    pointeur_hori++;
+    Si pointeur_hori > longueur de current_menu_options[pointeur_vert]:
+        pointeur_hori = 0;
+    SaveIntoJSON(current_option[pointeur_vert]);
+
+Si LEFT:
+    pointeur_hori--;
+    Si pointeur_hori < 0:
+        pointeur_hori = longueur de current_menu_options[pointeur_vert];
+    SaveIntoJSON(current_option[pointeur_vert]);
+
+Fonction SaveIntoJSON( elm ):
+    Config.put(elm, current_menu_options[pointeur_vert][pointeur_hori]);
+
+Fonction GetAltIndexFromJSON( elm ):
+    alt_value = Config.get(elm);
+    index_vert = current_option.index(elm);
+    index_hori = current_menu_options[index_vert].index(elm);
+
+Si ENTRER:
+    Si pointeur_vert == 0:
+        GO BACK
