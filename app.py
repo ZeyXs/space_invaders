@@ -88,14 +88,6 @@ class App:
 
         self.options_list = ["option.number_of_life", "option.ennemies_speed", "option.unbreakable_shield", "option.retro_mode", "option.music"] 
 
-        def save_into_json(self, elm):
-            self.Config.put(elm, self.current_menu_options[self.pointeur_vert][self.pointeur_hori])
-
-        def get_index_from_json(self, elm):
-            self.alt_value = self.Config.get(elm)
-            self.index_vert = self.options_list.index(elm)
-            self.index_hori = self.current_menu_options[self.index_vert].index(elm)
-
         while self.running:
             self.clock.tick(FPS)
             self.keys_pressed = pygame.key.get_pressed()
@@ -125,26 +117,24 @@ class App:
                         self.pointeur_hori -= 1
                         if self.pointeur_hori < 0:
                             self.pointeur_hori = len(self.current_menu_options[self.pointeur_vert])-1
-                        save_into_json(self.options_list[self.pointeur_vert])
+                        self.save_into_json(self.options_list[self.pointeur_vert])
                     
                     elif event.key == pygame.K_RIGHT:
                         self.pointeur_hori += 1
                         if self.pointeur_hori > len(self.current_menu_options[self.pointeur_vert])-1:
                             self.pointeur_hori = 0
-                        save_into_json(self.options_list[self.pointeur_vert])
+                        self.save_into_json(self.options_list[self.pointeur_vert])
                     
                     elif event.key == pygame.K_RETURN:
-                        if self.pointeur_vert == 0 and self.menu_id != 1:
+                        if self.pointeur_vert == 0 and self.menu_id == 1:
                             self.menu_id = 0
-
                         elif self.pointeur_vert == 0:
                             self.menu_id = 1
-
                         elif self.pointeur_vert == 1:
                             self.menu_id = 2
-                        
                         elif self.pointeur_vert == 2:
-                            self.menu_id = 3
+                            self.menu_id = 3 
+                        self.pointeur_vert = 0
 
             # --- IN-GAME ---
             if self.menu_id == 1:
@@ -218,7 +208,7 @@ class App:
     
     
     def draw_credits(self):
-    # Display text
+        # Display text
         str_credits = [
             ["> RETOUR <",self.font_8,60],
             ["CREE PAR : BASILE GAUTTRON,",self.font_8,100],
@@ -229,7 +219,6 @@ class App:
             ["MUSIQUE: EVAN KING - WARNING",self.font_8,180],
             ["https://youtu.be/M7Hw7g8bssY",self.font_6,191],
             ["HTTPS://CONTEXTSENSITIVE.BANDCAMP.COM",self.font_6,200]
-            
         ]
         self.button_choice = 0
         if self.button_choice == 0:
@@ -250,7 +239,14 @@ class App:
         for enemy in self.enemies:
             self.screen.blit(enemy.image, (enemy.rect.x,enemy.rect.y))
             enemy.update()
-        
+
+    def save_into_json(self, elm):
+        self.config.put(elm, self.current_menu_options[self.pointeur_vert][self.pointeur_hori])
+
+    def get_index_from_json(self, elm):
+        self.alt_value = self.config.get(elm)
+        self.index_vert = self.options_list.index(elm)
+        self.index_hori = self.current_menu_options[self.index_vert].index(elm)
         
     def _draw_text(self, text, color, font, x, y, align_center=False):
         tmp_font = font.render(text, 0.2, color)

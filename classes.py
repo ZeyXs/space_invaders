@@ -53,13 +53,20 @@ class Meduse(Entity, pygame.sprite.Sprite):
         self.sprites = [pygame.image.load('./assets/textures/meduse_0.png').convert_alpha(),
                            pygame.image.load('./assets/textures/meduse_1.png').convert_alpha()]
 
-class Projectile:
+class Projectile(pygame.sprite.Sprite):
 
-    def __init__(self, rect, texture, speed, team):
-        self.rect = rect
-        self.texture = texture
-        self.speed = speed
-        self.team = team
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface((50,10))
+        self.image.fill((255,0,0))
+        self.rect = self.image.get_rect(center = (x, y))
+        
+    def update(self):
+        self.rect.x += 5
+        
+    def create_projectile(self, x, y):
+        return Projectile(x, y)
+        texture
         
 class Team:
     PLAYER = 0
