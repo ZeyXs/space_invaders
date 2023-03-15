@@ -86,7 +86,7 @@ class App:
         self.options = [2,1,1,0,0]
         """
 
-        self.options_list = ["option.number_of_life", "option.ennemies_speed", "unbreakable_shield", "retro_mode", "music"] 
+        self.options_list = ["option.number_of_life", "option.ennemies_speed", "option.unbreakable_shield", "option.retro_mode", "option.music"] 
 
         def save_into_json(self, elm):
             self.Config.put(elm, self.current_menu_options[self.pointeur_vert][self.pointeur_hori])
@@ -137,39 +137,15 @@ class App:
                         if self.pointeur_vert == 0 and self.menu_id != 1:
                             self.menu_id = 0
 
-                        if self.pointeur_vert == 0:
+                        elif self.pointeur_vert == 0:
                             self.menu_id = 1
 
-                        if self.pointeur_vert == 1:
+                        elif self.pointeur_vert == 1:
                             self.menu_id = 2
                         
-                        if self.pointeur_vert == 2:
+                        elif self.pointeur_vert == 2:
                             self.menu_id = 3
 
-                    print("pointeur_vert = " + str(self.pointeur_vert))
-                    print("pointeur_hori = " + str(self.pointeur_hori))
-
-            # --- MAIN MENU ---
-            """
-            if self.menu_id == 0:
-                # controls
-                if self.keys_pressed[pygame.K_RETURN]:
-                    # Player chooses PLAY
-                    if self.button_choice == 0:
-                        self.menu_id = 1
-                    # Player chooses OPTIONS
-                    if self.button_choice == 1:
-                        self.menu_id = 2
-                    # Player chooses CREDITS
-                    if self.button_choice == 2:
-                        self.menu_id = 3
-                
-                if self.button_choice < 0:
-                    self.button_choice = 2
-                
-                if self.button_choice > 2:
-                    self.button_choice = 0
-            """
             # --- IN-GAME ---
             if self.menu_id == 1:
                 # controls
@@ -177,32 +153,12 @@ class App:
                     self.player.rect.x -= 1
                 if self.keys_pressed[pygame.K_RIGHT] and self.player.rect.x + 1 + self.player.image.get_rect().width < WIDTH:
                     self.player.rect.x += 1
-            
-            # --- OPTIONS ---
-            """elif self.menu_id == 2:
-                # controls
-                #if self.keys_pressed[pygame.K_RETURN]:
-                    # Player chooses PLAY
-                    #if self.button_choice == 0:
-                    #    self.menu_id = 0
-                    # options verticales
-                if self.button_choice < 0:
-                    self.button_choice = 2
-
-                elif self.button_choice > 5:
-                    self.button_choice = 0
-                    # options horizontales
-                
-                #self.button_choice2 = self.options[self.button_choice]
-                if self.button_choice2 == 0:
-                    pass
-            """        
-            
+                        
             self.draw_on_screen()
                     
         pygame.quit()
         sys.exit()
-    
+        
     
     def draw_on_screen(self):
         self.screen.fill(BLACK)
