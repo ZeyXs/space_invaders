@@ -133,7 +133,7 @@ class App:
                         elif self.pointeur_vert == 1:
                             self.menu_id = 2
                         elif self.pointeur_vert == 2:
-                            self.menu_id = 3 
+                            self.menu_id = 3
                         self.pointeur_vert = 0
 
             # --- IN-GAME ---

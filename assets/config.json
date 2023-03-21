@@ -1,13 +1,13 @@
 {
     "lang": {
-        "credits": ""
+        "credits": []
     },
     "option": {
         "number_of_life": 0,
-        "ennemies_speed": 3,
-        "unbreakable_shield": false,
+        "ennemies_speed": 5,
+        "unbreakable_shield": 2,
         "retro_mode": true,
-        "music": false,
+        "music": true,
         "highest_score": 0
     }
 }
