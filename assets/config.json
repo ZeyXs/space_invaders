@@ -4,8 +4,8 @@
     },
     "option": {
         "number_of_life": 0,
-        "ennemies_speed": 5,
-        "unbreakable_shield": 2,
+        "ennemies_speed": 0,
+        "unbreakable_shield": 0,
         "retro_mode": true,
         "music": true,
         "highest_score": 0

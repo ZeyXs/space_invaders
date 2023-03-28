@@ -30,46 +30,58 @@ class Player(Entity, pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(pos_x, pos_y)
         self.sprites = [pygame.image.load('./assets/textures/player.png').convert_alpha(),
-                           pygame.image.load('./assets/textures/player.png').convert_alpha()]
+                        pygame.image.load('./assets/textures/player.png').convert_alpha()]
         
 class Crabe(Entity, pygame.sprite.Sprite):
     
     def __init__(self, pos_x, pos_y):
         super().__init__(pos_x, pos_y)
         self.sprites = [pygame.image.load('./assets/textures/crabe_0.png').convert_alpha(),
-                           pygame.image.load('./assets/textures/crabe_1.png').convert_alpha()]
+                        pygame.image.load('./assets/textures/crabe_1.png').convert_alpha()]
         
 class Poulpe(Entity, pygame.sprite.Sprite):
     
     def __init__(self, pos_x, pos_y):
         super().__init__(pos_x, pos_y)
         self.sprites = [pygame.image.load('./assets/textures/poulpe_0.png').convert_alpha(),
-                           pygame.image.load('./assets/textures/poulpe_1.png').convert_alpha()]
+                        pygame.image.load('./assets/textures/poulpe_1.png').convert_alpha()]
         
 class Meduse(Entity, pygame.sprite.Sprite):
     
     def __init__(self, pos_x, pos_y):
         super().__init__(pos_x, pos_y)
         self.sprites = [pygame.image.load('./assets/textures/meduse_0.png').convert_alpha(),
-                           pygame.image.load('./assets/textures/meduse_1.png').convert_alpha()]
+                        pygame.image.load('./assets/textures/meduse_1.png').convert_alpha()]
 
 class Projectile(pygame.sprite.Sprite):
 
     def __init__(self, x, y):
         super().__init__()
-        self.image = pygame.Surface((50,10))
-        self.image.fill((255,0,0))
+        self.image = pygame.Surface((2,5))
+        self.image.fill((255,255,255))
         self.rect = self.image.get_rect(center = (x, y))
         
-    def update(self):
-        self.rect.x += 5
+    def update_ennemi(self):
+        self.rect.y += 5
         
-    def create_projectile(self, x, y):
-        return Projectile(x, y)
-        texture
+    def update_player(self):
+        self.rect.y -= 5
         
-class Team:
-    PLAYER = 0
-    ENEMY = 1
+class Shield(pygame.sprite.Sprite):
     
-#class Bouclier:
+    def __init__(self, size, x, y):
+        super().__init__()
+        self.image = pygame.Surface((size, size))
+        self.image.fill((255,255,255))
+        self.rect = self.image.get_rect(topleft = (x,y))
+
+def get_shield_shape():
+    with open("assets/shield_pattern.txt") as fd:
+        shape_str = fd.read().split("\n")
+        shape = list(zip(*shape_str))[::-1]
+    return shape
+
+def create_multiple_shield(self,*offset,x_start,y_start):
+		for offset_x in offset:
+			self.create_obstacle(x_start,y_start,offset_x)
+                

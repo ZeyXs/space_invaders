@@ -24,6 +24,7 @@ class App:
         
         # Initialisation de la fenêtre
         self.config = Config("assets/config.json")
+                
         self.window = pygame.display.set_mode((WIDTH*SCALING_FACTOR, HEIGHT*SCALING_FACTOR))
         self.screen = pygame.Surface((WIDTH, HEIGHT))
 
@@ -45,27 +46,17 @@ class App:
         self.in_main_menu = True
         self.enemies = []
 
-        # Clefs de contact (nom temporaire, ou pas...)
         self.clock = pygame.time.Clock()
         self.running = True
-        
-        # Création des entités
-            # - Joueur
-        self.player = Player(0, 0)
-        self.player.move(WIDTH/2-(self.player.image.get_width()/2), 201)
-
-            # - Ennemis
-        rang = 0
-        for y in range(40, HEIGHT-130, 15):
-            for x in range(25, WIDTH-30, 15):
-                if rang==0:
-                    self.enemies.append(Meduse(x+1.9, y))
-                elif rang<=2:
-                    self.enemies.append(Crabe(x+0.5, y))
-                elif rang<=4:
-                    self.enemies.append(Poulpe(x, y))
-            rang+=1
-            
+        self.is_init = False
+        self.x_group = -1
+                    
+        self.shield_size = 1
+        self.shields = pygame.sprite.Group()
+        self.shield_amount = 4
+        self.shield_x_positions = [num * (WIDTH / self.shield_amount-10) for num in range(self.shield_amount)]
+        print(self.shield_x_positions)
+        self.create_multiple_shield(*self.shield_x_positions, x_start = 32, y_start = 180)
 
     def run(self):
 
@@ -126,7 +117,7 @@ class App:
                         self.save_into_json(self.options_list[self.pointeur_vert])
                     
                     elif event.key == pygame.K_RETURN:
-                        if self.pointeur_vert == 0 and self.menu_id == 1:
+                        if self.pointeur_vert == 0 and self.menu_id == 2 or self.menu_id == 3:
                             self.menu_id = 0
                         elif self.pointeur_vert == 0:
                             self.menu_id = 1
@@ -143,7 +134,8 @@ class App:
                     self.player.rect.x -= 1
                 if self.keys_pressed[pygame.K_RIGHT] and self.player.rect.x + 1 + self.player.image.get_rect().width < WIDTH:
                     self.player.rect.x += 1
-                        
+                if self.keys_pressed[pygame.K_SPACE] and self.player_projectile == None :
+                    self.player_projectile=Projectile((self.player.rect.x + (0.5*self.player.rect.width)) ,self.player.rect.y)
             self.draw_on_screen()
                     
         pygame.quit()
@@ -205,7 +197,7 @@ class App:
         self._draw_text("OUI / NON", WHITE, self.font_8, None, 180, True)
         self._draw_text(str_musique[t[5]], WHITE, self.font_8, None, 200, True)
         self._draw_text("OUI / NON", WHITE, self.font_8, None, 210, True)
-    
+
     
     def draw_credits(self):
         # Display text
@@ -225,20 +217,84 @@ class App:
             for i in range(9):
                 self._draw_text(str_credits[i][0], WHITE, str_credits[i][1] , None, str_credits[i][2], True)
         
+        
+    def game_init(self):
+        # Création des entités
+            # - Joueur
+        self.player = Player(0, 0)
+        self.player.move(WIDTH/2-(self.player.image.get_width()/2), 201)
+            # - Projectiles
+        self.ennemi_projectile=None
+        self.player_projectile=None
+
+            # - Ennemis
+        rang = 0
+        for y in range(40, HEIGHT-130, 15):
+            for x in range(25, WIDTH-30, 15):
+                if rang == 0:
+                    self.enemies.append(Meduse(x+1.9, y))
+                elif rang <= 2:
+                    self.enemies.append(Crabe(x+0.5, y))
+                elif rang <= 4:
+                    self.enemies.append(Poulpe(x, y))
+            rang += 1
+            
     
     def draw_game(self):
+        
+        if not self.is_init:
+            self.game_init()
+            self.is_init = True
 
         # Affichage du texte
-        tmp_test_font = self.font_8.render("SCORE<1>    HI-SCORE<2>", 0, WHITE)
-        self.screen.blit(tmp_test_font, (WIDTH - tmp_test_font.get_width()*1.25, 10))
+        self._draw_text("SCORE<1>    HI-SCORE<2>", WHITE, self.font_8, None, 10, True)
         
         # Affichage des entitées
         self.screen.blit(self.player.image, (self.player.rect.x, self.player.rect.y))
         self.player.update()
+        
+        # Affichage des boucliers
+        self.shields.draw(self.screen)     
 
         for enemy in self.enemies:
             self.screen.blit(enemy.image, (enemy.rect.x,enemy.rect.y))
             enemy.update()
+            
+        # Affichage des projectiles
+        if self.player_projectile != None and self.player_projectile.rect.y > 0:
+            self.screen.blit(self.player_projectile.image , (self.player_projectile.rect.x , self.player_projectile.rect.y ))
+            
+        else:
+            self.player_projectile = None
+            
+        if self.ennemi_projectile != None and self.ennemi_projectile.rect.y < HEIGHT:
+            self.screen.blit(self.ennemi_projectile.image , (self.ennemi_projectile.rect.x , self.ennemi_projectile.rect.y ))
+        
+        else: 
+            self.ennemi_projectile = None
+                
+        # enemies moving
+        """
+        for enemy in self.enemies:
+
+            if enemy.rect.x == 0: # Si collision gauche
+                self.x_group = 1
+            
+            if (enemy.rect.x + enemy.rect.width) == WIDTH: # Si collision droite
+                self.x_group = -1
+
+            enemy.rect.x += self.x_group
+        """
+            
+        #Projectiles moving  
+        
+        if self.player_projectile != None:
+            self.player_projectile.update_player()
+            
+        if self.player_projectile != None:
+            pass
+            #self.ennemi_projectile.update_ennemi()
+
 
     def save_into_json(self, elm):
         self.config.put(elm, self.current_menu_options[self.pointeur_vert][self.pointeur_hori])
@@ -248,13 +304,26 @@ class App:
         self.index_vert = self.options_list.index(elm)
         self.index_hori = self.current_menu_options[self.index_vert].index(elm)
         
+    def create_shield(self, x_start, y_start, offset_x):
+        for row_index, row in enumerate(get_shield_shape()):
+            for col_index,col in enumerate(row):
+                if col == '*':
+                    x = x_start + col_index * self.shield_size + offset_x
+                    y = y_start + row_index * self.shield_size
+                    shield = Shield(self.shield_size, x, y)
+                    self.shields.add(shield)
+                    
+    def create_multiple_shield(self, *offset, x_start, y_start):
+        for offset_x in offset:
+            self.create_shield(x_start, y_start, offset_x)
+        
+        
     def _draw_text(self, text, color, font, x, y, align_center=False):
         tmp_font = font.render(text, 0.2, color)
         if align_center:
             self.screen.blit(tmp_font, ((WIDTH - tmp_font.get_width())/2, y))
         else:
             self.screen.blit(tmp_font, (x,y))
-
 
 if __name__ == "__main__":
     app = App()
