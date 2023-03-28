@@ -98,11 +98,13 @@ class App:
                         self.pointeur_vert -= 1
                         if self.pointeur_vert < 0:
                             self.pointeur_vert = len(self.current_menu_options)-1
+                        self.pointeur_hori=len(self.current_menu_options[self.pointeur_vert])-1
 
                     elif event.key == pygame.K_DOWN:
                         self.pointeur_vert += 1
                         if self.pointeur_vert > len(self.current_menu_options)-1:
                             self.pointeur_vert = 0
+                        self.pointeur_hori=len(self.current_menu_options[self.pointeur_vert])-1
                         
                     elif event.key == pygame.K_LEFT:
                         self.pointeur_hori -= 1
@@ -182,21 +184,47 @@ class App:
         str_boucliers=["BOUCLIERS INCASSABLES :", "> BOUCLIERS INCASSABLES : <"]
         str_retro=["MODE RETRO :", "> MODE RETRO : <"]
         str_musique=["MUSIQUE :", "> MUSIQUE : <"]
+        str_optionvie=[">1< / 2 / 3 / 4 / 5","1 / >2< / 3 / 4 / 5",
+                       "1 / 2 / >3< / 4 / 5","1 / 2 / 3 / >4< / 5",
+                       "1 / 2 / 3 / 4 / >5<" ]
+        str_optionVitesse=[">LENTE< / MOYENNE / RAPIDE","LENTE / >MOYENNE< / RAPIDE","LENTE / MOYENNE / >RAPIDE<"]
+        str_optionsAutres=[">OUI< / NON","OUI / >NON<"]
         #self.pointeur_vert=0
         #if self.pointeur_vert == 0:
         t=[0,0,0,0,0,0]
         t[self.pointeur_vert]=1
+        
         self._draw_text(str_retour[t[0]], WHITE, self.font_8, None, 60, True)
+        #Nombre de vies
         self._draw_text(str_vies[t[1]], WHITE, self.font_8, None, 80, True)
-        self._draw_text("1 / 2 / 3 / 4 / 5", WHITE, self.font_8, None, 90, True)
+        if t[1]!=1 :
+            self._draw_text(str_optionvie[self.pointeur_hori], WHITE, self.font_8, None, 90, True)
+        #else:
+        #    self._draw_text(str_optionvie[self.get_index_from_json("option.number_of_life")], WHITE, self.font_8, None, 90, True)
+        # Vitesse Déplacement ennemies
         self._draw_text(str_vitesse[t[2]], WHITE, self.font_8, None, 110, True)
-        self._draw_text("LENTE / MOYENNE / RAPIDE", WHITE, self.font_8, None, 120, True)
+        if t[2]!=1 :
+            self._draw_text(str_optionVitesse[self.pointeur_hori], WHITE, self.font_8, None, 120, True)
+        #else:
+        #    self._draw_text(str_optionVitesse[self.get_index_from_json("option[ennemies_speed]")], WHITE, self.font_8, None, 120, True)
+        # Boucliers Indestructibles
         self._draw_text(str_boucliers[t[3]], WHITE, self.font_8, None, 140, True)
-        self._draw_text("OUI / NON", WHITE, self.font_8, None, 150, True)
+        if t[3]!=1 :
+            self._draw_text(str_optionsAutres[self.pointeur_hori], WHITE, self.font_8, None, 150, True)
+        #else:
+        #    self._draw_text(str_optionsAutres[self.get_index_from_json("option[unbreakable_shield]")], WHITE, self.font_8, None, 150, True)
+        # Mode Rétro
         self._draw_text(str_retro[t[4]], WHITE, self.font_8, None, 170, True)
-        self._draw_text("OUI / NON", WHITE, self.font_8, None, 180, True)
+        if t[4]!=1 :
+            self._draw_text(str_optionsAutres[self.pointeur_hori], WHITE, self.font_8, None, 180, True)
+        #else:
+        #    self._draw_text(str_optionsAutres[self.get_index_from_json("retro_mode")], WHITE, self.font_8, None, 180, True)
+        # Musique
         self._draw_text(str_musique[t[5]], WHITE, self.font_8, None, 200, True)
-        self._draw_text("OUI / NON", WHITE, self.font_8, None, 210, True)
+        if t[5]!=1 :
+            self._draw_text(str_optionsAutres[self.pointeur_hori], WHITE, self.font_8, None, 210, True)
+        #else:
+        #    self._draw_text(str_optionsAutres[self.get_index_from_json("music")], WHITE, self.font_8, None, 210, True)
 
     
     def draw_credits(self):
