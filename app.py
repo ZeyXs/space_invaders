@@ -14,7 +14,7 @@ RED = (255,0,0)
 
 WIDTH, HEIGHT = 210, 264
 FPS = 60
-SCALING_FACTOR = 3
+SCALING_FACTOR = 2.5
 
 # Application / Code du Jeu
 class App:
@@ -56,13 +56,13 @@ class App:
         self.shields = pygame.sprite.Group()
         self.shield_amount = 4
         self.shield_x_positions = [num * (WIDTH / self.shield_amount-10) for num in range(self.shield_amount)]
-        print(self.shield_x_positions)
         self.create_multiple_shield(*self.shield_x_positions, x_start = 32, y_start = 180)
         
         self.dy = 0.09
         self.vy = 0
         
         self.options = [None, "option.number_of_life", "option.ennemies_speed", "option.unbreakable_shield", "option.retro_mode", "option.music"]
+        self.color_opacity = 0
 
     def run(self):
 
@@ -129,24 +129,40 @@ class App:
                             elif self.pointeur_vert == 2:
                                 self.menu_id = 3
                             self.pointeur_vert = 0
-                            
+                    
                         # Touche RETURN pour le menu des options
                         elif self.menu_id == 2:
                             if self.pointeur_vert == 0:
                                 self.menu_id = 0
                             if self.options[self.pointeur_vert] != None:
                                 selected_option = self.options[self.pointeur_vert]
+                                new_value = self.current_menu_options[self.pointeur_vert][self.pointeur_hori-1]
                                 if selected_option == "option.number_of_life":
-                                    self.config.put("option.number_of_life", self.current_menu_options[self.pointeur_vert][self.pointeur_hori-1])
+                                    if new_value != self.config.get("option.number_of_life"):
+                                        self.config.put("option.number_of_life", new_value)
+                                        self.color_opacity = 255
                                 elif selected_option == "option.ennemies_speed":
-                                    self.config.put("option.ennemies_speed", self.current_menu_options[self.pointeur_vert][self.pointeur_hori-1])
+                                    if new_value != self.config.get("option.ennemies_speed"):
+                                        self.config.put("option.ennemies_speed", new_value)
+                                        self.color_opacity = 255
                                 elif selected_option == "option.unbreakable_shield":
-                                    self.config.put("option.unbreakable_shield", self.current_menu_options[self.pointeur_vert][self.pointeur_hori-1])
+                                    if new_value != self.config.get("option.unbreakable_shield"):
+                                        self.config.put("option.unbreakable_shield", new_value)
+                                        self.color_opacity = 255
                                 elif selected_option == "option.retro_mode":
-                                    self.config.put("option.retro_mode", self.current_menu_options[self.pointeur_vert][self.pointeur_hori-1])
+                                    if new_value != self.config.get("option.retro_mode"):
+                                        self.config.put("option.retro_mode", new_value)
+                                        self.color_opacity = 255
                                 else:
-                                    self.config.put("option.music", self.current_menu_options[self.pointeur_vert][self.pointeur_hori-1])
-
+                                    if new_value != self.config.get("option.music"):
+                                        self.config.put("option.music", new_value)
+                                        self.color_opacity = 255
+                        
+                        # Touche RETURN pour le menu des credits   
+                        elif self.menu_id == 3:
+                            if self.pointeur_vert == 0:
+                                self.menu_id = 0
+                                
             # --- IN-GAME ---
             if self.menu_id == 1:
                 # controls
@@ -269,6 +285,12 @@ class App:
         else:
             choice = self.config.get("option.music")
             self._draw_text("[ OUI ] / NON" if choice else "OUI / [ NON ]", GRAY, self.font_8, None, 210, True)
+            
+        # SAVED TAUST
+        if self.color_opacity > 0:
+            self.color_opacity -= 5
+        
+        self._draw_text("Sauvegarde !", (self.color_opacity, self.color_opacity, self.color_opacity), self.font_8, 7, HEIGHT - 15)
 
     
     def draw_credits(self):
