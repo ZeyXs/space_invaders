@@ -80,8 +80,3 @@ def get_shield_shape():
         shape_str = fd.read().split("\n")
         shape = list(zip(*shape_str))[::-1]
     return shape
-
-def create_multiple_shield(self,*offset,x_start,y_start):
-		for offset_x in offset:
-			self.create_obstacle(x_start,y_start,offset_x)
-                
