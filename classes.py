@@ -12,19 +12,18 @@ class Entity(pygame.sprite.Sprite):
         self.current_sprite = 0
         self.image = self.sprites[self.current_sprite]
         
-        self.rect = self.image.get_rect()
+        self.rect = pygame.Rect(12, 8, 12, 8)
         self.rect.topleft = [pos_x,pos_y]
-        self.counter = 0
-        self.index = 0
 
-    def update(self):
+    def update(self, direction):
         self.current_sprite += 0.015
 
         if self.current_sprite >= len(self.sprites):
             self.current_sprite = 0
             
-        
         self.image = self.sprites[int(self.current_sprite)]
+        
+        self.rect.x += direction
         
     def move(self, pos_x, pos_y):
         self.rect.topleft = [pos_x, pos_y]
@@ -38,6 +37,14 @@ class Player(Entity, pygame.sprite.Sprite):
                         pygame.image.load('./assets/textures/player.png').convert_alpha()]
         self.death_sprites = [pygame.image.load("./assets/textures/player_death_0.png").convert_alpha(),
                               pygame.image.load("./assets/textures/player_death_1.png").convert_alpha()]
+        
+    def update(self):
+        self.current_sprite += 0.015
+
+        if self.current_sprite >= len(self.sprites):
+            self.current_sprite = 0
+            
+        self.image = self.sprites[int(self.current_sprite)]
         
 class Crabe(Entity, pygame.sprite.Sprite):
     

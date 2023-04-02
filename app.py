@@ -324,16 +324,15 @@ class App:
        
     # _____ Initialisation du jeu _____ 
     def game_init(self):
-        # Création des entités
-            # - Joueur
         self.player = Player(0, 0)
         self.player.move(WIDTH/2-(self.player.image.get_width()/2), 201)
-            # - Projectiles
-        self.ennemi_projectile=None
-        self.player_projectile=None
+        
+        self.enemy_direction = 1
+        self.player_projectile = None
 
         self.timer_missile_1 = 0
         self.timer_missile_2 = 0
+        self.timer_movement = 5
         self.enemy_projectile_1 = None
         self.enemy_projectile_2 = None
         
@@ -344,8 +343,8 @@ class App:
         self.create_multiple_shield(*self.shield_x_positions, x_start = 32, y_start = 180)
         
         self.remaining_life = self.config.get("option.number_of_life")
-        self.score = 70
         self.hi_score = self.config.get("option.highest_score")
+        self.score = 0
         
         # Couleur vert pour les icones de vies
         if not self.config.get("option.retro_mode"):
@@ -358,9 +357,9 @@ class App:
         for y in range(40, HEIGHT-130, 15):
             for x in range(25, WIDTH-30, 15):
                 if rang == 0:
-                    self.enemies.add(Meduse(x+1.9, y))
+                    self.enemies.add(Meduse(x, y))
                 elif rang <= 2:
-                    self.enemies.add(Crabe(x+0.5, y))
+                    self.enemies.add(Crabe(x, y))
                 elif rang <= 4:
                     self.enemies.add(Poulpe(x, y))
             rang += 1
@@ -372,7 +371,7 @@ class App:
             self.game_init()
             self.is_init = True
 
-        # Affichage du texte
+        # Displaying text & decorations
         self._draw_text("SCORE<1>                HI-SCORE<2>", WHITE, self.font_8, None, 10, True)
         self._draw_text(f"{self.score:04d}", WHITE, self.font_8, 45, 21)
         self._draw_text(f"{self.hi_score:04d}", WHITE, self.font_8, WIDTH-83, 21)
@@ -380,28 +379,35 @@ class App:
         self._draw_text(f"{self.remaining_life}", WHITE, self.font_8, 20, HEIGHT-20)
         pygame.draw.line(self.screen, WHITE if self.config.get("option.retro_mode") else GREEN, (0,HEIGHT-30), (WIDTH, HEIGHT-30))
         
-        # Affichage du nombre de vie.s restant.s
+        # Displaying the remaining life
         for x in range(30, 30+self.remaining_life*17, 17):
             self.screen.blit(self.life_icon, (x, HEIGHT-20))
         
-        # Affichage des entitées
+        # Displaying elements on the screen
         self.screen.blit(self.player.image, (self.player.rect.x, self.player.rect.y))
         self.player.update()
-        
-        # Affichage des groupes
         self.shields.draw(self.screen)     
         self.enemies.draw(self.screen)
 
-        for enemy in self.enemies:
-            #self.screen.blit(enemy.image, (enemy.rect.x,enemy.rect.y))
-            enemy.update()
+
+        all_enemy = self.enemies.sprites()
+        for enemy in all_enemy:
             
-            if self.player_projectile != None:
-                if pygame.sprite.collide_rect(self.player_projectile, enemy):
-                    self.player_projectile = None
-                    self.enemies.remove(enemy)
+            # Enemies movement
+            if enemy.rect.right >= WIDTH:
+                self.enemy_direction = -1
+            elif enemy.rect.left < 2:
+                self.enemy_direction = 1
+
+        self.enemies.update(self.enemy_direction)
+        self.draw_projectile()
+        self.check_projectile_collisions()
+        self.check_shield_destruction()
+        
             
-        # Tirs Ennemis
+    def draw_projectile(self):
+        
+        # Enemies' projectile
         if len(self.enemies) != 0:
             if self.timer_missile_1 >= 130:
                 self.timer_missile_1 = 0
@@ -415,73 +421,62 @@ class App:
 
             self.timer_missile_1 += 1
             self.timer_missile_2 += 1
+        
+        # Player's projectile
+        if self.player_projectile != None:
+            if self.player_projectile.rect.y > 0:
+                self.screen.blit(self.player_projectile.image , (self.player_projectile.rect.x , self.player_projectile.rect.y ))
+                self.player_projectile.update_player()
+            else:
+                self.player_projectile = None
+        
+        # First enemy's projectile
+        if self.enemy_projectile_1 != None:
+            if self.enemy_projectile_1.rect.y < HEIGHT:
+                self.screen.blit(self.enemy_projectile_1.image , (self.enemy_projectile_1.rect.x , self.enemy_projectile_1.rect.y ))
+                self.enemy_projectile_1.update_enemy()
+            else: 
+                self.enemy_projectile_1 = None
 
-        # Détection collision missiles ennemis
+        # Second enemy's projectile
+        if self.enemy_projectile_2 != None:
+            if self.enemy_projectile_2.rect.y < HEIGHT:
+                self.screen.blit(self.enemy_projectile_2.image , (self.enemy_projectile_2.rect.x , self.enemy_projectile_2.rect.y ))
+                self.enemy_projectile_2.update_enemy()
+            else: 
+                self.enemy_projectile_2 = None
+        
+    def check_projectile_collisions(self):
+        
+        for enemy in self.enemies:
+            if self.player_projectile != None:
+                if pygame.sprite.collide_rect(self.player_projectile, enemy):
+                    self.player_projectile = None
+                    self.enemies.remove(enemy)
+        
         if self.enemy_projectile_1 != None:
                 if pygame.sprite.collide_rect(self.enemy_projectile_1, self.player):
                     self.enemy_projectile_1 = None
                     print("Joueur touché")
-                    self.player.death()
         
         if self.enemy_projectile_2 != None:
                 if pygame.sprite.collide_rect(self.enemy_projectile_2, self.player):
                     self.enemy_projectile_2 = None
                     print("Joueur touché")
-                    self.player.death()
-        
+            
+    def check_shield_destruction(self):
         for shield in self.shields:
             if self.enemy_projectile_1 != None:
                 if pygame.sprite.collide_rect(self.enemy_projectile_1, shield):
                     if not self.config.get("option.unbreakable_shield"):
                         self.destroy_shield(self.enemy_projectile_1)
                     self.enemy_projectile_1 = None
+                    
             if self.enemy_projectile_2 != None:
                 if pygame.sprite.collide_rect(self.enemy_projectile_2, shield):
                     if not self.config.get("option.unbreakable_shield"):
                         self.destroy_shield(self.enemy_projectile_2)
                     self.enemy_projectile_2 = None
-
-        # Affichage des projectiles
-        # - Missile Joueur
-        if self.player_projectile != None and self.player_projectile.rect.y > 0:
-            self.screen.blit(self.player_projectile.image , (self.player_projectile.rect.x , self.player_projectile.rect.y ))
-        else:
-            self.player_projectile = None
-        
-        # - Missile Ennemi n°1
-        if self.enemy_projectile_1 != None and self.enemy_projectile_1.rect.y < HEIGHT:
-            self.screen.blit(self.enemy_projectile_1.image , (self.enemy_projectile_1.rect.x , self.enemy_projectile_1.rect.y ))
-        else: 
-            self.enemy_projectile_1 = None
-
-        # - Missile Ennemi n°2
-        if self.enemy_projectile_2 != None and self.enemy_projectile_2.rect.y < HEIGHT:
-            self.screen.blit(self.enemy_projectile_2.image , (self.enemy_projectile_2.rect.x , self.enemy_projectile_2.rect.y ))
-        else: 
-            self.enemy_projectile_2 = None
-                
-        # enemies moving
-        """
-        for enemy in self.enemies:
-
-            if enemy.rect.x == 0: # Si collision gauche
-                self.x_group = 1
-            
-            if (enemy.rect.x + enemy.rect.width) == WIDTH: # Si collision droite
-                self.x_group = -1
-
-            enemy.rect.x += self.x_group
-        """
-            
-        # Déplacement des Projectiles
-        if self.player_projectile != None:
-            self.player_projectile.update_player()
-            
-        if self.enemy_projectile_1 != None:
-            self.enemy_projectile_1.update_enemy()
-
-        if self.enemy_projectile_2 != None:
-            self.enemy_projectile_2.update_enemy()
 
         
     def create_shield(self, x_start, y_start, offset_x):
