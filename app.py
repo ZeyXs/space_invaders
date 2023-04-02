@@ -2,6 +2,8 @@ import os, sys
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import random
 import pygame
+from copy import deepcopy
+
 
 from utils import *
 from classes import *
@@ -40,6 +42,8 @@ class App:
 
         self.logo = pygame.image.load('./assets/textures/title.png').convert_alpha()
         self.logo = pygame.transform.scale(self.logo,(193,83))
+        
+        self.life_icon = pygame.image.load('./assets/textures/player.png').convert_alpha()
 
         # _____ Esthétique fenêtre _____
         pygame.display.set_icon(icon)
@@ -47,18 +51,12 @@ class App:
 
         # _____ Variables in-game _____
         self.in_main_menu = True
-        self.enemies = []
+        self.enemies = pygame.sprite.Group()
 
         self.clock = pygame.time.Clock()
         self.running = True
         self.is_init = False
         self.x_group = -1
-                    
-        self.shield_size = 1
-        self.shields = pygame.sprite.Group()
-        self.shield_amount = 4
-        self.shield_x_positions = [num * (WIDTH / self.shield_amount-10) for num in range(self.shield_amount)]
-        self.create_multiple_shield(*self.shield_x_positions, x_start = 32, y_start = 180)
         
         self.dy = 0.09
         self.vy = 0
@@ -122,6 +120,16 @@ class App:
                             self.pointeur_hori += 1
                             if self.pointeur_hori > len(self.current_menu_options[self.pointeur_vert])-1:
                                 self.pointeur_hori = 0
+                    
+                    elif event.key == pygame.K_ESCAPE:
+                        # Touche ESCAPE en jeu
+                        if self.menu_id == 1:
+                            self.enemies.empty()
+                            self.shields.empty()
+                            self.enemy_projectile_1 = None
+                            self.enemy_projectile_2 = None
+                            self.is_init = False
+                            self.menu_id = 0
                     
                     elif event.key == pygame.K_RETURN:
                         # Touche RETURN pour le menu principal
@@ -328,17 +336,33 @@ class App:
         self.timer_missile_2 = 0
         self.enemy_projectile_1 = None
         self.enemy_projectile_2 = None
+        
+        self.shield_size = 1
+        self.shields = pygame.sprite.Group()
+        self.shield_amount = 4
+        self.shield_x_positions = [num * (WIDTH / self.shield_amount-10) for num in range(self.shield_amount)]
+        self.create_multiple_shield(*self.shield_x_positions, x_start = 32, y_start = 180)
+        
+        self.remaining_life = self.config.get("option.number_of_life")
+        self.score = 70
+        self.hi_score = self.config.get("option.highest_score")
+        
+        # Couleur vert pour les icones de vies
+        if not self.config.get("option.retro_mode"):
+            self._replace_color(self.life_icon, GREEN)
+        else:
+            self._replace_color(self.life_icon, WHITE)
 
             # - Ennemis
         rang = 0
         for y in range(40, HEIGHT-130, 15):
             for x in range(25, WIDTH-30, 15):
                 if rang == 0:
-                    self.enemies.append(Meduse(x+1.9, y))
+                    self.enemies.add(Meduse(x+1.9, y))
                 elif rang <= 2:
-                    self.enemies.append(Crabe(x+0.5, y))
+                    self.enemies.add(Crabe(x+0.5, y))
                 elif rang <= 4:
-                    self.enemies.append(Poulpe(x, y))
+                    self.enemies.add(Poulpe(x, y))
             rang += 1
     
     # _____ Affichage de l'écran de jeu _____
@@ -349,17 +373,27 @@ class App:
             self.is_init = True
 
         # Affichage du texte
-        self._draw_text("SCORE<1>    HI-SCORE<2>", WHITE, self.font_8, None, 10, True)
+        self._draw_text("SCORE<1>                HI-SCORE<2>", WHITE, self.font_8, None, 10, True)
+        self._draw_text(f"{self.score:04d}", WHITE, self.font_8, 45, 21)
+        self._draw_text(f"{self.hi_score:04d}", WHITE, self.font_8, WIDTH-83, 21)
+        self._draw_text("CREDIT 00", WHITE, self.font_8, WIDTH-68, HEIGHT-20)
+        self._draw_text(f"{self.remaining_life}", WHITE, self.font_8, 20, HEIGHT-20)
+        pygame.draw.line(self.screen, WHITE if self.config.get("option.retro_mode") else GREEN, (0,HEIGHT-30), (WIDTH, HEIGHT-30))
+        
+        # Affichage du nombre de vie.s restant.s
+        for x in range(30, 30+self.remaining_life*17, 17):
+            self.screen.blit(self.life_icon, (x, HEIGHT-20))
         
         # Affichage des entitées
         self.screen.blit(self.player.image, (self.player.rect.x, self.player.rect.y))
         self.player.update()
         
-        # Affichage des boucliers
+        # Affichage des groupes
         self.shields.draw(self.screen)     
+        self.enemies.draw(self.screen)
 
         for enemy in self.enemies:
-            self.screen.blit(enemy.image, (enemy.rect.x,enemy.rect.y))
+            #self.screen.blit(enemy.image, (enemy.rect.x,enemy.rect.y))
             enemy.update()
             
             if self.player_projectile != None:
@@ -371,27 +405,41 @@ class App:
         if len(self.enemies) != 0:
             if self.timer_missile_1 >= 130:
                 self.timer_missile_1 = 0
-                self.random_enemy = random.choice(self.enemies)
-                self.enemy_projectile_1=Projectile((self.random_enemy.rect.x + (0.5*self.random_enemy.rect.width)) ,self.random_enemy.rect.y)
+                self.random_enemy = random.choice(self.enemies.sprites())
+                self.enemy_projectile_1 = Projectile((self.random_enemy.rect.x + (0.5*self.random_enemy.rect.width)) ,self.random_enemy.rect.y)
 
             if self.timer_missile_2 >= 155:
                 self.timer_missile_2 = 0
-                self.random_enemy = random.choice(self.enemies)
-                self.enemy_projectile_2=Projectile((self.random_enemy.rect.x + (0.5*self.random_enemy.rect.width)) ,self.random_enemy.rect.y)
+                self.random_enemy = random.choice(self.enemies.sprites())
+                self.enemy_projectile_2 = Projectile((self.random_enemy.rect.x + (0.5*self.random_enemy.rect.width)) ,self.random_enemy.rect.y)
 
             self.timer_missile_1 += 1
             self.timer_missile_2 += 1
 
         # Détection collision missiles ennemis
         if self.enemy_projectile_1 != None:
-                if pygame.sprite.collide_rect(self.enemy_projectile_1,self.player):
+                if pygame.sprite.collide_rect(self.enemy_projectile_1, self.player):
                     self.enemy_projectile_1 = None
                     print("Joueur touché")
+                    self.player.death()
         
         if self.enemy_projectile_2 != None:
-                if pygame.sprite.collide_rect(self.enemy_projectile_2,self.player):
+                if pygame.sprite.collide_rect(self.enemy_projectile_2, self.player):
                     self.enemy_projectile_2 = None
                     print("Joueur touché")
+                    self.player.death()
+        
+        for shield in self.shields:
+            if self.enemy_projectile_1 != None:
+                if pygame.sprite.collide_rect(self.enemy_projectile_1, shield):
+                    if not self.config.get("option.unbreakable_shield"):
+                        self.destroy_shield(self.enemy_projectile_1)
+                    self.enemy_projectile_1 = None
+            if self.enemy_projectile_2 != None:
+                if pygame.sprite.collide_rect(self.enemy_projectile_2, shield):
+                    if not self.config.get("option.unbreakable_shield"):
+                        self.destroy_shield(self.enemy_projectile_2)
+                    self.enemy_projectile_2 = None
 
         # Affichage des projectiles
         # - Missile Joueur
@@ -442,12 +490,33 @@ class App:
                 if col == '*':
                     x = x_start + col_index * self.shield_size + offset_x
                     y = y_start + row_index * self.shield_size
-                    shield = Shield(self.shield_size, x, y)
+                    shield = Shield(self.shield_size, x, y, WHITE if self.config.get("option.retro_mode") else GREEN)
                     self.shields.add(shield)
                     
     def create_multiple_shield(self, *offset, x_start, y_start):
         for offset_x in offset:
             self.create_shield(x_start, y_start, offset_x)
+        
+    def destroy_shield(self, projectile):
+        shield_hit_list_random = pygame.sprite.spritecollide(projectile, self.shields, False, pygame.sprite.collide_rect_ratio(3))
+        shield_hit_list_random_center = pygame.sprite.spritecollide(projectile, self.shields, False, pygame.sprite.collide_rect_ratio(2))
+        
+        for shield in shield_hit_list_random:
+                pourcentage = random.randint(0,6)
+                if pourcentage == 4:
+                    shield.kill()
+        for shield in shield_hit_list_random_center:
+                pourcentage = random.randint(1, 2)
+                if pourcentage == 1:
+                    shield.kill()
+                    
+    def _replace_color(self, surface: pygame.Surface, color):
+        w, h = surface.get_size()
+        r, g, b = color
+        for x in range(w):
+            for y in range(h):
+                a = surface.get_at((x, y))[3]
+                surface.set_at((x, y), pygame.Color(r, g, b, a))
         
     def _draw_text(self, text, color, font, x, y, align_center=False):
         tmp_font = font.render(text, 0.2, color)

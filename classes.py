@@ -3,15 +3,19 @@ import pygame
 class Entity(pygame.sprite.Sprite):
 
     def __init__(self, pos_x, pos_y):
-        
+        super().__init__()
         self.sprites = [pygame.image.load('./assets/textures/player.png').convert_alpha(),
                         pygame.image.load('./assets/textures/player.png').convert_alpha()]
+        self.death_sprites = [pygame.image.load("./assets/textures/player_death_0.png").convert_alpha(),
+                              pygame.image.load("./assets/textures/player_death_1.png").convert_alpha()]
         
         self.current_sprite = 0
         self.image = self.sprites[self.current_sprite]
         
         self.rect = self.image.get_rect()
         self.rect.topleft = [pos_x,pos_y]
+        self.counter = 0
+        self.index = 0
 
     def update(self):
         self.current_sprite += 0.015
@@ -25,12 +29,15 @@ class Entity(pygame.sprite.Sprite):
     def move(self, pos_x, pos_y):
         self.rect.topleft = [pos_x, pos_y]
         
+        
 class Player(Entity, pygame.sprite.Sprite):
     
     def __init__(self, pos_x, pos_y):
         super().__init__(pos_x, pos_y)
         self.sprites = [pygame.image.load('./assets/textures/player.png').convert_alpha(),
                         pygame.image.load('./assets/textures/player.png').convert_alpha()]
+        self.death_sprites = [pygame.image.load("./assets/textures/player_death_0.png").convert_alpha(),
+                              pygame.image.load("./assets/textures/player_death_1.png").convert_alpha()]
         
 class Crabe(Entity, pygame.sprite.Sprite):
     
@@ -38,6 +45,8 @@ class Crabe(Entity, pygame.sprite.Sprite):
         super().__init__(pos_x, pos_y)
         self.sprites = [pygame.image.load('./assets/textures/crabe_0.png').convert_alpha(),
                         pygame.image.load('./assets/textures/crabe_1.png').convert_alpha()]
+        self.death_sprites = [pygame.image.load("./assets/textures/enemy_explosion.png").convert_alpha(),
+                              pygame.image.load("./assets/textures/enemy_explosion.png").convert_alpha()]
         
 class Poulpe(Entity, pygame.sprite.Sprite):
     
@@ -45,6 +54,8 @@ class Poulpe(Entity, pygame.sprite.Sprite):
         super().__init__(pos_x, pos_y)
         self.sprites = [pygame.image.load('./assets/textures/poulpe_0.png').convert_alpha(),
                         pygame.image.load('./assets/textures/poulpe_1.png').convert_alpha()]
+        self.death_sprites = [pygame.image.load("./assets/textures/enemy_explosion.png").convert_alpha(),
+                              pygame.image.load("./assets/textures/enemy_explosion.png").convert_alpha()]
         
 class Meduse(Entity, pygame.sprite.Sprite):
     
@@ -52,6 +63,8 @@ class Meduse(Entity, pygame.sprite.Sprite):
         super().__init__(pos_x, pos_y)
         self.sprites = [pygame.image.load('./assets/textures/meduse_0.png').convert_alpha(),
                         pygame.image.load('./assets/textures/meduse_1.png').convert_alpha()]
+        self.death_sprites = [pygame.image.load("./assets/textures/enemy_explosion.png").convert_alpha(),
+                              pygame.image.load("./assets/textures/enemy_explosion.png").convert_alpha()]
 
 class Projectile(pygame.sprite.Sprite):
 
@@ -69,10 +82,10 @@ class Projectile(pygame.sprite.Sprite):
         
 class Shield(pygame.sprite.Sprite):
     
-    def __init__(self, size, x, y):
+    def __init__(self, size, x, y, color):
         super().__init__()
         self.image = pygame.Surface((size, size))
-        self.image.fill((255,255,255))
+        self.image.fill(color)
         self.rect = self.image.get_rect(topleft = (x,y))
 
 def get_shield_shape():

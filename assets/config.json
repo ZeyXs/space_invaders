@@ -6,7 +6,7 @@
         "number_of_life": 3,
         "ennemies_speed": 2,
         "unbreakable_shield": false,
-        "retro_mode": true,
+        "retro_mode": false,
         "music": true,
         "highest_score": 0
     }
