@@ -20,6 +20,16 @@ WIDTH, HEIGHT = 210, 264
 FPS = 60
 SCALING_FACTOR = 3
 
+MUSIC_LINK = "assets/sounds/music2.wav"
+HIT_SOUND_LINK = "assets/sounds/hitHurt.wav"
+EXPLOSION_SOUND_LINK = "assets/sounds/explosion.wav"
+LASER_SOUND_LINK = "assets/sounds/laserShoot.wav"
+
+MUSIC_VOLUME = 0.08
+HIT_VOLUME = 0.4
+EXPLOSION_VOLUME = 0.2
+LASER_VOLUME = 0.3
+
 # _______________ Application / Code du Jeu ________________
 class App:
 
@@ -44,6 +54,21 @@ class App:
         self.logo = pygame.transform.scale(self.logo,(193,83))
         
         self.life_icon = pygame.image.load('./assets/textures/player.png').convert_alpha()
+
+        # _____ Importation musique & SFX _____
+        pygame.mixer.init()
+
+        self.music = pygame.mixer.music.load(MUSIC_LINK)
+        pygame.mixer.music.set_volume(MUSIC_VOLUME)
+        self.music_enable = self.config.get("option.music")
+
+        self.hit_sound = pygame.mixer.Sound(HIT_SOUND_LINK)
+        self.explosion_sound = pygame.mixer.Sound(EXPLOSION_SOUND_LINK)
+        self.laser_sound = pygame.mixer.Sound(LASER_SOUND_LINK)
+
+        self.hit_sound.set_volume(HIT_VOLUME)
+        self.explosion_sound.set_volume(EXPLOSION_VOLUME)
+        self.laser_sound.set_volume(LASER_VOLUME)
 
         # _____ Esthétique fenêtre _____
         pygame.display.set_icon(icon)
@@ -168,6 +193,7 @@ class App:
                                 else:
                                     if new_value != self.config.get("option.music"):
                                         self.config.put("option.music", new_value)
+                                        self.music_enable = new_value
                                         self.color_opacity = 255
                         
                         # Touche RETURN pour le menu des credits   
@@ -183,7 +209,17 @@ class App:
                 if self.keys_pressed[pygame.K_RIGHT] and self.player.rect.x + 1 + self.player.image.get_rect().width < WIDTH:
                     self.player.rect.x += 1
                 if self.keys_pressed[pygame.K_SPACE] and self.player_projectile == None :
-                    self.player_projectile = Projectile((self.player.rect.x + (0.5*self.player.rect.width)), self.player.rect.y)
+                    self.player_projectile = Projectile((self.player.rect.x + (0.5*self.player.rect.width)), self.player.rect.y, False)
+                    self.laser_sound.play()
+                # music
+                if self.music_enable == True and self.playing_music == False:
+                    pygame.mixer.music.play(-1)
+                    self.playing_music = True
+
+            if self.menu_id != 1:
+                pygame.mixer.music.stop()
+                self.playing_music = False
+
             self.draw_on_screen()
                     
         pygame.quit()
@@ -280,7 +316,6 @@ class App:
             choice = self.config.get("option.unbreakable_shield")
             self._draw_text("[ OUI ] / NON" if choice else "OUI / [ NON ]", GRAY, self.font_8, None, 150, True)
                 
-        
         # MODE RETRO
         self._draw_text("> MODE RETRO : <" if self.pointeur_vert == 4 else "MODE RETRO :", WHITE, self.font_8, None, 170, True)
         if self.pointeur_vert == 4:
@@ -344,6 +379,8 @@ class App:
         
         self.remaining_life = self.config.get("option.number_of_life")
         self.hi_score = self.config.get("option.highest_score")
+        self.music_enable = self.config.get("option.music")
+        self.playing_music = False
         self.score = 0
         
         # Couleur vert pour les icones de vies
@@ -386,20 +423,29 @@ class App:
         # Displaying elements on the screen
         self.screen.blit(self.player.image, (self.player.rect.x, self.player.rect.y))
         self.player.update()
-        self.shields.draw(self.screen)     
+        self.shields.draw(self.screen)
         self.enemies.draw(self.screen)
 
-
-        all_enemy = self.enemies.sprites()
-        for enemy in all_enemy:
+        has_to_move = False
+        all_enemies = self.enemies.sprites()
+        for enemy in all_enemies:
             
             # Enemies movement
             if enemy.rect.right >= WIDTH:
                 self.enemy_direction = -1
+                has_to_move = True
+
             elif enemy.rect.left < 2:
                 self.enemy_direction = 1
+                has_to_move = True
 
-        self.enemies.update(self.enemy_direction)
+        if has_to_move:
+            for enemy in all_enemies:
+                enemy.move_down(self.enemy_direction)
+            #print("_____ I MOVED!!! _____")
+            has_to_move = False
+
+        self.enemies.update(self.enemy_direction,len(all_enemies))
         self.draw_projectile()
         self.check_projectile_collisions()
         self.check_shield_destruction()
@@ -412,12 +458,12 @@ class App:
             if self.timer_missile_1 >= 130:
                 self.timer_missile_1 = 0
                 self.random_enemy = random.choice(self.enemies.sprites())
-                self.enemy_projectile_1 = Projectile((self.random_enemy.rect.x + (0.5*self.random_enemy.rect.width)) ,self.random_enemy.rect.y)
+                self.enemy_projectile_1 = Projectile((self.random_enemy.rect.x + (0.5*self.random_enemy.rect.width)) ,self.random_enemy.rect.y, True)
 
             if self.timer_missile_2 >= 155:
                 self.timer_missile_2 = 0
                 self.random_enemy = random.choice(self.enemies.sprites())
-                self.enemy_projectile_2 = Projectile((self.random_enemy.rect.x + (0.5*self.random_enemy.rect.width)) ,self.random_enemy.rect.y)
+                self.enemy_projectile_2 = Projectile((self.random_enemy.rect.x + (0.5*self.random_enemy.rect.width)) ,self.random_enemy.rect.y, True)
 
             self.timer_missile_1 += 1
             self.timer_missile_2 += 1
@@ -453,16 +499,21 @@ class App:
                 if pygame.sprite.collide_rect(self.player_projectile, enemy):
                     self.player_projectile = None
                     self.enemies.remove(enemy)
+                    self.explosion_sound.play()
         
         if self.enemy_projectile_1 != None:
                 if pygame.sprite.collide_rect(self.enemy_projectile_1, self.player):
                     self.enemy_projectile_1 = None
-                    print("Joueur touché")
+                    self.remaining_life = self.remaining_life - 1
+                    self.hit_sound.play()
+                    #print("Joueur touché")
         
         if self.enemy_projectile_2 != None:
                 if pygame.sprite.collide_rect(self.enemy_projectile_2, self.player):
                     self.enemy_projectile_2 = None
-                    print("Joueur touché")
+                    self.remaining_life = self.remaining_life - 1
+                    self.hit_sound.play()
+                    #print("Joueur touché")
             
     def check_shield_destruction(self):
         for shield in self.shields:

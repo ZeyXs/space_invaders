@@ -15,14 +15,23 @@ class Entity(pygame.sprite.Sprite):
         self.rect = pygame.Rect(12, 8, 12, 8)
         self.rect.topleft = [pos_x,pos_y]
 
-    def update(self, direction):
+        self.direction_timer = 0
+
+    def update(self, direction, enemies_alive):
         self.current_sprite += 0.015
 
         if self.current_sprite >= len(self.sprites):
             self.current_sprite = 0
             
         self.image = self.sprites[int(self.current_sprite)]
-        
+
+        self.direction_timer += 1
+        if self.direction_timer >= (12*enemies_alive)//55:
+            self.direction_timer = 0
+            self.rect.x += direction
+
+    def move_down(self, direction):
+        self.rect.y += 12
         self.rect.x += direction
         
     def move(self, pos_x, pos_y):
@@ -75,14 +84,27 @@ class Meduse(Entity, pygame.sprite.Sprite):
 
 class Projectile(pygame.sprite.Sprite):
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, enemy_shot):
         super().__init__()
-        self.image = pygame.Surface((2,5))
-        self.image.fill((255,255,255))
-        self.rect = self.image.get_rect(center = (x, y))
+        if enemy_shot == False:
+            self.image = pygame.Surface((2,5))
+            self.image.fill((255,255,255))
+            self.rect = self.image.get_rect(center = (x, y))
+        else:
+            self.sprites = [pygame.image.load('./assets/textures/emissile_0.png').convert_alpha(),
+                        pygame.image.load('./assets/textures/emissile_1.png').convert_alpha(),
+                        pygame.image.load('./assets/textures/emissile_2.png').convert_alpha()]
+            self.current_sprite = 0
+            self.image = self.sprites[self.current_sprite]
+            self.rect = self.image.get_rect(center = (x, y))
         
     def update_enemy(self):
         self.rect.y += 2
+
+        self.current_sprite += 0.05
+        if self.current_sprite >= len(self.sprites):
+            self.current_sprite = 0
+        self.image = self.sprites[int(self.current_sprite)]
         
     def update_player(self):
         self.rect.y -= 5
