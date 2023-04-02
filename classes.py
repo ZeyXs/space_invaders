@@ -61,8 +61,8 @@ class Projectile(pygame.sprite.Sprite):
         self.image.fill((255,255,255))
         self.rect = self.image.get_rect(center = (x, y))
         
-    def update_ennemi(self):
-        self.rect.y += 5
+    def update_enemy(self):
+        self.rect.y += 2
         
     def update_player(self):
         self.rect.y -= 5

@@ -1,11 +1,13 @@
 import os, sys
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+import random
 import pygame
+
 from utils import *
 from classes import *
 from config import *
 
-# Constantes
+# _______________________ Constantes _______________________
 WHITE = (230,230,230)
 GRAY = (190, 190, 190)
 BLACK = (0,0,0)
@@ -14,22 +16,22 @@ RED = (255,0,0)
 
 WIDTH, HEIGHT = 210, 264
 FPS = 60
-SCALING_FACTOR = 2.5
+SCALING_FACTOR = 3
 
-# Application / Code du Jeu
+# _______________ Application / Code du Jeu ________________
 class App:
 
     def __init__(self):
         pygame.display.init()
         pygame.font.init()
         
-        # Initialisation de la fenêtre
+        # _____ Initialisation de la fenêtre _____
         self.config = Config("assets/config.json")
                 
         self.window = pygame.display.set_mode((WIDTH*SCALING_FACTOR, HEIGHT*SCALING_FACTOR))
         self.screen = pygame.Surface((WIDTH, HEIGHT))
 
-        # Importation des textures
+        # _____ Importation des textures _____
         icon = pygame.image.load('./assets/textures/icon.png').convert_alpha()
         
         self.font_6 = pygame.font.Font("./assets/fonts/space_invaders.ttf", 6)
@@ -39,11 +41,11 @@ class App:
         self.logo = pygame.image.load('./assets/textures/title.png').convert_alpha()
         self.logo = pygame.transform.scale(self.logo,(193,83))
 
-        # Esthétique fenêtre
+        # _____ Esthétique fenêtre _____
         pygame.display.set_icon(icon)
         pygame.display.set_caption("Space Invaders v0.1")
 
-        # Variables in-game
+        # _____ Variables in-game _____
         self.in_main_menu = True
         self.enemies = []
 
@@ -64,6 +66,7 @@ class App:
         self.options = [None, "option.number_of_life", "option.ennemies_speed", "option.unbreakable_shield", "option.retro_mode", "option.music"]
         self.color_opacity = 0
 
+    # _____ Lancement du jeu _____
     def run(self):
 
         self.menu_id = 0
@@ -91,6 +94,7 @@ class App:
                     self.running = False
 
                 if event.type == pygame.KEYDOWN:
+                    
                     if event.key == pygame.K_UP:
                         self.pointeur_vert -= 1
                         if self.pointeur_vert < 0:
@@ -171,13 +175,13 @@ class App:
                 if self.keys_pressed[pygame.K_RIGHT] and self.player.rect.x + 1 + self.player.image.get_rect().width < WIDTH:
                     self.player.rect.x += 1
                 if self.keys_pressed[pygame.K_SPACE] and self.player_projectile == None :
-                    self.player_projectile=Projectile((self.player.rect.x + (0.5*self.player.rect.width)) ,self.player.rect.y)
+                    self.player_projectile = Projectile((self.player.rect.x + (0.5*self.player.rect.width)), self.player.rect.y)
             self.draw_on_screen()
                     
         pygame.quit()
         sys.exit()
         
-    
+    # _____ Screen Manager _____
     def draw_on_screen(self):
         self.screen.fill(BLACK)
 
@@ -200,7 +204,7 @@ class App:
         self.window.blit(pygame.transform.scale(self.screen, self.window.get_rect().size), (0, 0))
         pygame.display.flip()
         
-        
+    # _____ Affichage du menu principal _____
     def draw_main_menu(self):
         # Display Game Icon
         self.screen.blit(self.logo,((WIDTH - self.logo.get_width())/2, 20 + self.vy))
@@ -214,9 +218,8 @@ class App:
         for i in range(3):
             self._draw_text(menu[self.pointeur_vert][i], WHITE, self.font_14, None, 140+(i*30), True)
     
-    
+    # _____ Affichage du menu des options _____
     def draw_options(self):
-        # Display text
         
         # RETOUR
         self._draw_text("> RETOUR <" if self.pointeur_vert == 0 else "RETOUR", WHITE, self.font_8, None, 60, True)
@@ -292,7 +295,7 @@ class App:
         
         self._draw_text("Sauvegarde !", (self.color_opacity, self.color_opacity, self.color_opacity), self.font_8, 7, HEIGHT - 15)
 
-    
+    # _____ Affichage du menu des crédits _____
     def draw_credits(self):
         # Display text
         str_credits = [
@@ -310,8 +313,8 @@ class App:
         if self.button_choice == 0:
             for i in range(9):
                 self._draw_text(str_credits[i][0], WHITE, str_credits[i][1] , None, str_credits[i][2], True)
-        
-        
+       
+    # _____ Initialisation du jeu _____ 
     def game_init(self):
         # Création des entités
             # - Joueur
@@ -320,6 +323,11 @@ class App:
             # - Projectiles
         self.ennemi_projectile=None
         self.player_projectile=None
+
+        self.timer_missile_1 = 0
+        self.timer_missile_2 = 0
+        self.enemy_projectile_1 = None
+        self.enemy_projectile_2 = None
 
             # - Ennemis
         rang = 0
@@ -332,8 +340,8 @@ class App:
                 elif rang <= 4:
                     self.enemies.append(Poulpe(x, y))
             rang += 1
-            
     
+    # _____ Affichage de l'écran de jeu _____
     def draw_game(self):
         
         if not self.is_init:
@@ -354,18 +362,55 @@ class App:
             self.screen.blit(enemy.image, (enemy.rect.x,enemy.rect.y))
             enemy.update()
             
-        # Affichage des projectiles
-        if self.player_projectile != None and self.player_projectile.rect.y > 0:
-            self.screen.blit(self.player_projectile.image, (self.player_projectile.rect.x , self.player_projectile.rect.y ))
+            if self.player_projectile != None:
+                if pygame.sprite.collide_rect(self.player_projectile, enemy):
+                    self.player_projectile = None
+                    self.enemies.remove(enemy)
             
+        # Tirs Ennemis
+        if len(self.enemies) != 0:
+            if self.timer_missile_1 >= 130:
+                self.timer_missile_1 = 0
+                self.random_enemy = random.choice(self.enemies)
+                self.enemy_projectile_1=Projectile((self.random_enemy.rect.x + (0.5*self.random_enemy.rect.width)) ,self.random_enemy.rect.y)
+
+            if self.timer_missile_2 >= 155:
+                self.timer_missile_2 = 0
+                self.random_enemy = random.choice(self.enemies)
+                self.enemy_projectile_2=Projectile((self.random_enemy.rect.x + (0.5*self.random_enemy.rect.width)) ,self.random_enemy.rect.y)
+
+            self.timer_missile_1 += 1
+            self.timer_missile_2 += 1
+
+        # Détection collision missiles ennemis
+        if self.enemy_projectile_1 != None:
+                if pygame.sprite.collide_rect(self.enemy_projectile_1,self.player):
+                    self.enemy_projectile_1 = None
+                    print("Joueur touché")
+        
+        if self.enemy_projectile_2 != None:
+                if pygame.sprite.collide_rect(self.enemy_projectile_2,self.player):
+                    self.enemy_projectile_2 = None
+                    print("Joueur touché")
+
+        # Affichage des projectiles
+        # - Missile Joueur
+        if self.player_projectile != None and self.player_projectile.rect.y > 0:
+            self.screen.blit(self.player_projectile.image , (self.player_projectile.rect.x , self.player_projectile.rect.y ))
         else:
             self.player_projectile = None
-            
-        if self.ennemi_projectile != None and self.ennemi_projectile.rect.y < HEIGHT:
-            self.screen.blit(self.ennemi_projectile.image , (self.ennemi_projectile.rect.x , self.ennemi_projectile.rect.y ))
         
+        # - Missile Ennemi n°1
+        if self.enemy_projectile_1 != None and self.enemy_projectile_1.rect.y < HEIGHT:
+            self.screen.blit(self.enemy_projectile_1.image , (self.enemy_projectile_1.rect.x , self.enemy_projectile_1.rect.y ))
         else: 
-            self.ennemi_projectile = None
+            self.enemy_projectile_1 = None
+
+        # - Missile Ennemi n°2
+        if self.enemy_projectile_2 != None and self.enemy_projectile_2.rect.y < HEIGHT:
+            self.screen.blit(self.enemy_projectile_2.image , (self.enemy_projectile_2.rect.x , self.enemy_projectile_2.rect.y ))
+        else: 
+            self.enemy_projectile_2 = None
                 
         # enemies moving
         """
@@ -380,23 +425,16 @@ class App:
             enemy.rect.x += self.x_group
         """
             
-        #Projectiles moving  
-        
+        # Déplacement des Projectiles
         if self.player_projectile != None:
             self.player_projectile.update_player()
             
-        if self.player_projectile != None:
-            pass
-            #self.ennemi_projectile.update_ennemi()
+        if self.enemy_projectile_1 != None:
+            self.enemy_projectile_1.update_enemy()
 
+        if self.enemy_projectile_2 != None:
+            self.enemy_projectile_2.update_enemy()
 
-    def save_into_json(self, elm):
-        self.config.put(elm, self.current_menu_options[self.pointeur_vert][self.pointeur_hori])
-
-    def get_index_from_json(self, elm):
-        self.alt_value = self.config.get(elm)
-        self.index_vert = self.options_list.index(elm)
-        self.index_hori = self.current_menu_options[self.index_vert].index(elm)
         
     def create_shield(self, x_start, y_start, offset_x):
         for row_index, row in enumerate(get_shield_shape()):
@@ -410,7 +448,6 @@ class App:
     def create_multiple_shield(self, *offset, x_start, y_start):
         for offset_x in offset:
             self.create_shield(x_start, y_start, offset_x)
-        
         
     def _draw_text(self, text, color, font, x, y, align_center=False):
         tmp_font = font.render(text, 0.2, color)
