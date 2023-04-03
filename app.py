@@ -502,6 +502,12 @@ class App:
         for enemy in self.enemies:
             if self.player_projectile != None:
                 if pygame.sprite.collide_rect(self.player_projectile, enemy):
+                    if type(enemy).__name__ == 'Poulpe':
+                        self.score+=10
+                    elif type(enemy).__name__ == 'Crabe':
+                        self.score+=20
+                    elif type(enemy).__name__ == 'Meduse':
+                        self.score+=30
                     self.player_projectile = None
                     self.enemies.remove(enemy)
                     self.explosion_sound.play()
