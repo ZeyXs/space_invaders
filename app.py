@@ -208,9 +208,11 @@ class App:
                     self.player.rect.x -= 1
                 if self.keys_pressed[pygame.K_RIGHT] and self.player.rect.x + 1 + self.player.image.get_rect().width < WIDTH:
                     self.player.rect.x += 1
-                if self.keys_pressed[pygame.K_SPACE] and self.player_projectile == None :
-                    self.player_projectile = Projectile((self.player.rect.x + (0.5*self.player.rect.width)), self.player.rect.y, False)
-                    self.laser_sound.play()
+                if self.keys_pressed[pygame.K_SPACE] and self.player_projectile == None:
+                    if self.shoot_cooldown < 0:
+                        self.player_projectile = Projectile((self.player.rect.x + (0.5*self.player.rect.width)), self.player.rect.y, False)
+                        self.laser_sound.play()
+                        self.shoot_cooldown = 30
                 # music
                 if self.music_enable == True and self.playing_music == False:
                     pygame.mixer.music.play(-1)
@@ -368,6 +370,7 @@ class App:
         self.timer_missile_1 = 0
         self.timer_missile_2 = 0
         self.timer_movement = 5
+        self.shoot_cooldown = 0
         self.enemy_projectile_1 = None
         self.enemy_projectile_2 = None
         
@@ -407,6 +410,7 @@ class App:
         if not self.is_init:
             self.game_init()
             self.is_init = True
+            
 
         # Displaying text & decorations
         self._draw_text("SCORE<1>                HI-SCORE<2>", WHITE, self.font_8, None, 10, True)
@@ -449,6 +453,7 @@ class App:
         self.draw_projectile()
         self.check_projectile_collisions()
         self.check_shield_destruction()
+        self.shoot_cooldown -= 1
         
             
     def draw_projectile(self):
@@ -528,6 +533,12 @@ class App:
                     if not self.config.get("option.unbreakable_shield"):
                         self.destroy_shield(self.enemy_projectile_2)
                     self.enemy_projectile_2 = None
+                    
+            if self.player_projectile != None:
+                if pygame.sprite.collide_rect(self.player_projectile, shield):
+                    if not self.config.get("option.unbreakable_shield"):
+                        self.destroy_shield(self.player_projectile)
+                    self.player_projectile = None
 
         
     def create_shield(self, x_start, y_start, offset_x):
@@ -548,7 +559,7 @@ class App:
         shield_hit_list_random_center = pygame.sprite.spritecollide(projectile, self.shields, False, pygame.sprite.collide_rect_ratio(2))
         
         for shield in shield_hit_list_random:
-                pourcentage = random.randint(0,6)
+                pourcentage = random.randint(0,4)
                 if pourcentage == 4:
                     shield.kill()
         for shield in shield_hit_list_random_center:
