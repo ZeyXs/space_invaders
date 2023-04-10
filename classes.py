@@ -1,4 +1,5 @@
 import pygame
+import utils
 
 class Entity(pygame.sprite.Sprite):
 
@@ -6,18 +7,15 @@ class Entity(pygame.sprite.Sprite):
         super().__init__()
         self.sprites = [pygame.image.load('./assets/textures/player.png').convert_alpha(),
                         pygame.image.load('./assets/textures/player.png').convert_alpha()]
-        self.death_sprites = [pygame.image.load("./assets/textures/player_death_0.png").convert_alpha(),
-                              pygame.image.load("./assets/textures/player_death_1.png").convert_alpha()]
         
         self.current_sprite = 0
         self.image = self.sprites[self.current_sprite]
+        self.direction_timer = 0
         
         self.rect = pygame.Rect(12, 8, 12, 8)
         self.rect.topleft = [pos_x,pos_y]
 
-        self.direction_timer = 0
-
-    def update(self, direction, enemies_alive):
+    def update(self, direction):
         self.current_sprite += 0.015
 
         if self.current_sprite >= len(self.sprites):
@@ -25,13 +23,8 @@ class Entity(pygame.sprite.Sprite):
             
         self.image = self.sprites[int(self.current_sprite)]
 
-        self.direction_timer += 1
-        if self.direction_timer >= (12*enemies_alive)//55:
-            self.direction_timer = 0
-            self.rect.x += direction
-
     def move_down(self, direction):
-        self.rect.y += 12
+        self.rect.y += 4
         self.rect.x += direction
         
     def move(self, pos_x, pos_y):
@@ -42,6 +35,7 @@ class Player(Entity, pygame.sprite.Sprite):
     
     def __init__(self, pos_x, pos_y):
         super().__init__(pos_x, pos_y)
+        
         self.sprites = [pygame.image.load('./assets/textures/player.png').convert_alpha(),
                         pygame.image.load('./assets/textures/player.png').convert_alpha()]
         self.death_sprites = [pygame.image.load("./assets/textures/player_death_0.png").convert_alpha(),
@@ -57,30 +51,82 @@ class Player(Entity, pygame.sprite.Sprite):
         
 class Crabe(Entity, pygame.sprite.Sprite):
     
-    def __init__(self, pos_x, pos_y):
+    def __init__(self, pos_x, pos_y, retro_mode):
         super().__init__(pos_x, pos_y)
         self.sprites = [pygame.image.load('./assets/textures/crabe_0.png').convert_alpha(),
                         pygame.image.load('./assets/textures/crabe_1.png').convert_alpha()]
         self.death_sprites = [pygame.image.load("./assets/textures/enemy_explosion.png").convert_alpha(),
                               pygame.image.load("./assets/textures/enemy_explosion.png").convert_alpha()]
+                
+        if not retro_mode:
+            utils.replace_color(self.sprites[0], (0, 255, 255))
+            utils.replace_color(self.sprites[1], (0, 255, 255))
+            
+    def update(self, direction, enemies_alive):
+        super().update(direction)
+        self.direction_timer += 1
+        if self.direction_timer >= (12*enemies_alive)//55:
+            self.direction_timer = 0
+            self.rect.x += direction
         
 class Poulpe(Entity, pygame.sprite.Sprite):
     
-    def __init__(self, pos_x, pos_y):
+    def __init__(self, pos_x, pos_y, retro_mode):
         super().__init__(pos_x, pos_y)
         self.sprites = [pygame.image.load('./assets/textures/poulpe_0.png').convert_alpha(),
                         pygame.image.load('./assets/textures/poulpe_1.png').convert_alpha()]
         self.death_sprites = [pygame.image.load("./assets/textures/enemy_explosion.png").convert_alpha(),
                               pygame.image.load("./assets/textures/enemy_explosion.png").convert_alpha()]
         
+        if not retro_mode:
+            utils.replace_color(self.sprites[0], (255, 0, 255))
+            utils.replace_color(self.sprites[1], (255, 0, 255))
+            
+    def update(self, direction, enemies_alive):
+        super().update(direction)
+        self.direction_timer += 1
+        if self.direction_timer >= (12*enemies_alive)//55:
+            self.direction_timer = 0
+            self.rect.x += direction
+        
 class Meduse(Entity, pygame.sprite.Sprite):
     
-    def __init__(self, pos_x, pos_y):
+    def __init__(self, pos_x, pos_y, retro_mode):
         super().__init__(pos_x, pos_y)
         self.sprites = [pygame.image.load('./assets/textures/meduse_0.png').convert_alpha(),
                         pygame.image.load('./assets/textures/meduse_1.png').convert_alpha()]
         self.death_sprites = [pygame.image.load("./assets/textures/enemy_explosion.png").convert_alpha(),
                               pygame.image.load("./assets/textures/enemy_explosion.png").convert_alpha()]
+        
+        if not retro_mode:
+            utils.replace_color(self.sprites[0], (255, 255, 0))
+            utils.replace_color(self.sprites[1], (255, 255, 0))
+            
+    def update(self, direction, enemies_alive):
+        super().update(direction)
+        self.direction_timer += 1
+        if self.direction_timer >= (12*enemies_alive)//55:
+            self.direction_timer = 0
+            self.rect.x += direction
+
+class VaisseauMere(Entity, pygame.sprite.Sprite):
+
+    def __init__(self, pos_x, pos_y, retro_mode):
+        super().__init__(pos_x, pos_y)
+        self.sprites = [pygame.image.load('./assets/textures/mothership.png').convert_alpha()]
+        self.death_sprites = [pygame.image.load("./assets/textures/mothership_explosion.png").convert_alpha()]
+        
+        if not retro_mode:
+            utils.replace_color(self.sprites[0], (255, 0, 0))
+
+    def update(self):
+        self.image = self.sprites[int(self.current_sprite)]
+
+    def move(self, direction):
+        if direction == 1:
+            self.rect.x += 1
+        else:
+            self.rect.x -= 1
 
 class Projectile(pygame.sprite.Sprite):
 

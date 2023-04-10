@@ -2,10 +2,8 @@ import os, sys
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import random
 import pygame
-from copy import deepcopy
 
-
-from utils import *
+import utils
 from classes import *
 from config import *
 
@@ -29,6 +27,8 @@ MUSIC_VOLUME = 0.08
 HIT_VOLUME = 0.4
 EXPLOSION_VOLUME = 0.2
 LASER_VOLUME = 0.3
+
+MOTHERSHIP_SHOW = 600
 
 # _______________ Application / Code du Jeu ________________
 class App:
@@ -73,6 +73,26 @@ class App:
         # _____ Esthétique fenêtre _____
         pygame.display.set_icon(icon)
         pygame.display.set_caption("Space Invaders v0.1")
+        
+        # _____ Esthétique des menus ______
+        self.star_field_slow = []
+        self.star_field_medium = []
+        self.star_field_fast = []
+
+        for slow_stars in range(25): #birth those plasma balls, baby
+            star_loc_x = random.randrange(0, WIDTH)
+            star_loc_y = random.randrange(0, HEIGHT)
+            self.star_field_slow.append([star_loc_x, star_loc_y])
+
+        for medium_stars in range(15):
+            star_loc_x = random.randrange(0, WIDTH)
+            star_loc_y = random.randrange(0, HEIGHT)
+            self.star_field_medium.append([star_loc_x, star_loc_y])
+
+        for fast_stars in range(5):
+            star_loc_x = random.randrange(0, WIDTH)
+            star_loc_y = random.randrange(0, HEIGHT)
+            self.star_field_fast.append([star_loc_x, star_loc_y])
 
         # _____ Variables in-game _____
         self.in_main_menu = True
@@ -252,6 +272,9 @@ class App:
         
     # _____ Affichage du menu principal _____
     def draw_main_menu(self):
+        
+        self.draw_stars()
+        
         # Display Game Icon
         self.screen.blit(self.logo,((WIDTH - self.logo.get_width())/2, 20 + self.vy))
         
@@ -266,6 +289,8 @@ class App:
     
     # _____ Affichage du menu des options _____
     def draw_options(self):
+        
+        self.draw_stars()
         
         # RETOUR
         self._draw_text("> RETOUR <" if self.pointeur_vert == 0 else "RETOUR", WHITE, self.font_8, None, 60, True)
@@ -342,6 +367,9 @@ class App:
 
     # _____ Affichage du menu des crédits _____
     def draw_credits(self):
+        
+        self.draw_stars()
+        
         # Display text
         str_credits = [
             ["> RETOUR <",self.font_8,60],
@@ -359,13 +387,40 @@ class App:
             for i in range(9):
                 self._draw_text(str_credits[i][0], WHITE, str_credits[i][1] , None, str_credits[i][2], True)
        
+    def draw_stars(self):
+        for star in self.star_field_slow:
+            star[1] += 0.5
+            if star[1] > HEIGHT:
+                star[0] = random.randrange(0, WIDTH)
+                star[1] = random.randrange(-20, -5)
+            pygame.draw.circle(self.screen, GRAY, star, 1)
+
+        for star in self.star_field_medium:
+            star[1] += 1.5
+            if star[1] > HEIGHT:
+                star[0] = random.randrange(0, WIDTH)
+                star[1] = random.randrange(-20, -5)
+            pygame.draw.circle(self.screen, GRAY, star, 1)
+
+        for star in self.star_field_fast:
+            star[1] += 2
+            if star[1] > HEIGHT:
+                star[0] = random.randrange(0, WIDTH)
+                star[1] = random.randrange(-20, -5)
+            pygame.draw.circle(self.screen, (255, 255, 0), star, 1)
+       
     # _____ Initialisation du jeu _____ 
     def game_init(self):
+        
         self.player = Player(0, 0)
         self.player.move(WIDTH/2-(self.player.image.get_width()/2), 201)
         
         self.enemy_direction = 1
         self.player_projectile = None
+
+        self.mothership = None
+        self.mothership_timer = MOTHERSHIP_SHOW
+        self.mothership_direction = -1
 
         self.timer_missile_1 = 0
         self.timer_missile_2 = 0
@@ -385,23 +440,24 @@ class App:
         self.music_enable = self.config.get("option.music")
         self.playing_music = False
         self.score = 0
+        self.playing_game = True 
         
         # Couleur vert pour les icones de vies
         if not self.config.get("option.retro_mode"):
-            self._replace_color(self.life_icon, GREEN)
+            utils.replace_color(self.life_icon, GREEN)
         else:
-            self._replace_color(self.life_icon, WHITE)
+            utils.replace_color(self.life_icon, WHITE)
 
             # - Ennemis
         rang = 0
         for y in range(40, HEIGHT-130, 15):
             for x in range(25, WIDTH-30, 15):
                 if rang == 0:
-                    self.enemies.add(Meduse(x, y))
+                    self.enemies.add(Meduse(x, y, self.config.get("option.retro_mode")))
                 elif rang <= 2:
-                    self.enemies.add(Crabe(x, y))
+                    self.enemies.add(Crabe(x, y, self.config.get("option.retro_mode")))
                 elif rang <= 4:
-                    self.enemies.add(Poulpe(x, y))
+                    self.enemies.add(Poulpe(x, y, self.config.get("option.retro_mode")))
             rang += 1
     
     # _____ Affichage de l'écran de jeu _____
@@ -410,7 +466,25 @@ class App:
         if not self.is_init:
             self.game_init()
             self.is_init = True
-            
+        
+        if self.mothership_timer <= 0:
+            if self.mothership == None:
+                self.mothership_direction *= -1 #1 if self.mothership_direction == -1 else -1
+                self.mothership = VaisseauMere(WIDTH if self.mothership_direction == -1 else -5, 33, self.config.get("option.retro_mode"))
+
+            if self.mothership.rect.x < WIDTH and self.mothership_direction == 1:
+                self.mothership.move(self.mothership_direction)
+            elif self.mothership.rect.right > 0 and self.mothership_direction == -1:
+                self.mothership.move(self.mothership_direction)
+
+            else:
+                self.mothership = None
+                self.mothership_timer = MOTHERSHIP_SHOW
+        else:
+            self.mothership_timer -= 1
+
+        if self.mothership != None:
+            self.mothership.update()
 
         # Displaying text & decorations
         self._draw_text("SCORE<1>                HI-SCORE<2>", WHITE, self.font_8, None, 10, True)
@@ -423,39 +497,60 @@ class App:
         # Displaying the remaining life
         for x in range(30, 30+self.remaining_life*17, 17):
             self.screen.blit(self.life_icon, (x, HEIGHT-20))
-        
+             
         # Displaying elements on the screen
         self.screen.blit(self.player.image, (self.player.rect.x, self.player.rect.y))
-        self.player.update()
+        if self.mothership != None:
+            self.screen.blit(self.mothership.image, (self.mothership.rect.x, self.mothership.rect.y))
         self.shields.draw(self.screen)
         self.enemies.draw(self.screen)
 
-        has_to_move = False
-        all_enemies = self.enemies.sprites()
-        for enemy in all_enemies:
-            
-            # Enemies movement
-            if enemy.rect.right >= WIDTH:
-                self.enemy_direction = -1
-                has_to_move = True
-
-            elif enemy.rect.left < 2:
-                self.enemy_direction = 1
-                has_to_move = True
-
-        if has_to_move:
-            for enemy in all_enemies:
-                enemy.move_down(self.enemy_direction)
-            #print("_____ I MOVED!!! _____")
-            has_to_move = False
-
-        self.enemies.update(self.enemy_direction,len(all_enemies))
-        self.draw_projectile()
-        self.check_projectile_collisions()
-        self.check_shield_destruction()
-        self.shoot_cooldown -= 1
+        if self.playing_game:
         
-            
+            self.player.update()
+                
+            has_to_move = False
+            all_enemies = self.enemies.sprites()
+            for enemy in all_enemies:
+                
+                # Enemies movement
+                if enemy.rect.right >= WIDTH:
+                    self.enemy_direction = -1
+                    has_to_move = True
+
+                elif enemy.rect.left < 2:
+                    self.enemy_direction = 1
+                    has_to_move = True
+
+            if has_to_move:
+                for enemy in all_enemies:
+                    enemy.move_down(self.enemy_direction)
+                #print("_____ I MOVED!!! _____")
+                has_to_move = False
+
+            self.enemies.update(self.enemy_direction, len(all_enemies))
+            self.draw_projectile()
+            self.check_projectile_collisions()
+            self.check_shield_destruction()
+            self.shoot_cooldown -= 1
+
+            """
+            if not self.enemies and self.remaining_life > 0 :
+                self.playing_game=False
+                #self.draw_victory()
+                print("----- VICTORY ------")
+            if self.remaining_life <= 0 :#or :
+                self.playing_game=False
+                #self.draw_defeat()
+                print("------ DEFEAT LIFE ------")
+            if self.check_collision_shield:
+                self.playing_game=False
+                #self.draw_defeat()
+                print("------ DEFEAT BOUCLIER ------")
+        """
+        #else: 
+        
+           
     def draw_projectile(self):
         
         # Enemies' projectile
@@ -497,21 +592,24 @@ class App:
             else: 
                 self.enemy_projectile_2 = None
         
-    def check_projectile_collisions(self):
+    def check_projectile_collisions(self):        
         
         for enemy in self.enemies:
             if self.player_projectile != None:
                 if pygame.sprite.collide_rect(self.player_projectile, enemy):
-                    if type(enemy).__name__ == 'Poulpe':
-                        self.score+=10
-                    elif type(enemy).__name__ == 'Crabe':
-                        self.score+=20
-                    elif type(enemy).__name__ == 'Meduse':
-                        self.score+=30
+                    self.calcul_score(type(enemy).__name__)
                     self.player_projectile = None
                     self.enemies.remove(enemy)
                     self.explosion_sound.play()
-        
+            
+        if self.mothership != None and self.player_projectile != None:
+            if pygame.sprite.collide_rect(self.player_projectile, self.mothership):
+                self.calcul_score(type(self.mothership).__name__)
+                self.player_projectile = None
+                self.mothership = None
+                self.explosion_sound.play()
+                self.mothership_timer = MOTHERSHIP_SHOW
+
         if self.enemy_projectile_1 != None:
                 if pygame.sprite.collide_rect(self.enemy_projectile_1, self.player):
                     self.enemy_projectile_1 = None
@@ -525,6 +623,17 @@ class App:
                     self.remaining_life = self.remaining_life - 1
                     self.hit_sound.play()
                     #print("Joueur touché")
+                    
+           
+    def calcul_score(self,enemy_type):
+        if enemy_type == 'Poulpe':
+            self.score += 10
+        elif enemy_type == 'Crabe':
+            self.score += 20
+        elif enemy_type == 'Meduse':
+            self.score += 30
+        elif enemy_type == 'VaisseauMere':
+            self.score += 100
             
     def check_shield_destruction(self):
         for shield in self.shields:
@@ -546,7 +655,12 @@ class App:
                         self.destroy_shield(self.player_projectile)
                     self.player_projectile = None
 
-        
+    def check_collision_shield(self):
+        for enemy in self.enemies:
+            if pygame.sprite.spritecollideany(enemy, self.shields, collided = None) != None:
+                return True
+        return False
+    
     def create_shield(self, x_start, y_start, offset_x):
         for row_index, row in enumerate(get_shield_shape()):
             for col_index,col in enumerate(row):
@@ -572,14 +686,10 @@ class App:
                 pourcentage = random.randint(1, 2)
                 if pourcentage == 1:
                     shield.kill()
-                    
-    def _replace_color(self, surface: pygame.Surface, color):
-        w, h = surface.get_size()
-        r, g, b = color
-        for x in range(w):
-            for y in range(h):
-                a = surface.get_at((x, y))[3]
-                surface.set_at((x, y), pygame.Color(r, g, b, a))
+    
+    #def draw_defeat(self):
+        
+    #def draw_victory(self):
         
     def _draw_text(self, text, color, font, x, y, align_center=False):
         tmp_font = font.render(text, 0.2, color)
