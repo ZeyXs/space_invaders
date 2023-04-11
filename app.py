@@ -8,6 +8,7 @@ from classes import *
 from config import *
 
 # _______________________ Constantes _______________________
+
 WHITE = (230,230,230)
 GRAY = (190, 190, 190)
 BLACK = (0,0,0)
@@ -101,6 +102,7 @@ class App:
         self.clock = pygame.time.Clock()
         self.running = True
         self.is_init = False
+        self.playing_game = False 
         self.x_group = -1
         
         self.dy = 0.09
@@ -138,6 +140,14 @@ class App:
 
                 if event.type == pygame.KEYDOWN:
                     
+                    if event.key == pygame.K_k:
+                        if self.menu_id == 1:
+                            self.remaining_life -= 1
+                            
+                    if event.key == pygame.K_w:
+                        if self.menu_id == 1:
+                            self.enemies.empty()
+                    
                     if event.key == pygame.K_UP:
                         self.pointeur_vert -= 1
                         if self.pointeur_vert < 0:
@@ -169,12 +179,7 @@ class App:
                     elif event.key == pygame.K_ESCAPE:
                         # Touche ESCAPE en jeu
                         if self.menu_id == 1:
-                            self.enemies.empty()
-                            self.shields.empty()
-                            self.enemy_projectile_1 = None
-                            self.enemy_projectile_2 = None
-                            self.is_init = False
-                            self.menu_id = 0
+                            self.game_reset()
                     
                     elif event.key == pygame.K_RETURN:
                         # Touche RETURN pour le menu principal
@@ -218,11 +223,10 @@ class App:
                         
                         # Touche RETURN pour le menu des credits   
                         elif self.menu_id == 3:
-                            if self.pointeur_vert == 0:
-                                self.menu_id = 0
+                            self.menu_id = 0
                                 
             # --- IN-GAME ---
-            if self.menu_id == 1:
+            if self.menu_id == 1 and self.playing_game:
                 # controls
                 if self.keys_pressed[pygame.K_LEFT] and self.player.rect.x - 1 > 0:
                     self.player.rect.x -= 1
@@ -237,7 +241,12 @@ class App:
                 if self.music_enable == True and self.playing_music == False:
                     pygame.mixer.music.play(-1)
                     self.playing_music = True
-
+            if self.menu_id == 1 and not self.playing_game:
+                if self.keys_pressed[pygame.K_RETURN]:
+                    self.game_reset()
+                    self.is_init = False
+                    self.draw_game()
+            
             if self.menu_id != 1:
                 pygame.mixer.music.stop()
                 self.playing_music = False
@@ -387,6 +396,7 @@ class App:
             for i in range(9):
                 self._draw_text(str_credits[i][0], WHITE, str_credits[i][1] , None, str_credits[i][2], True)
        
+    # ____ Affuchage des étoiles _____
     def draw_stars(self):
         for star in self.star_field_slow:
             star[1] += 0.5
@@ -440,7 +450,8 @@ class App:
         self.music_enable = self.config.get("option.music")
         self.playing_music = False
         self.score = 0
-        self.playing_game = True 
+        self.playing_game = True
+        self.mothership_killed = 0
         
         # Couleur vert pour les icones de vies
         if not self.config.get("option.retro_mode"):
@@ -460,6 +471,15 @@ class App:
                     self.enemies.add(Poulpe(x, y, self.config.get("option.retro_mode")))
             rang += 1
     
+    # _____ Réitinialisation du jeu _____
+    def game_reset(self):
+        self.enemies.empty()
+        self.shields.empty()
+        self.enemy_projectile_1 = None
+        self.enemy_projectile_2 = None
+        self.is_init = False
+        self.menu_id = 0
+    
     # _____ Affichage de l'écran de jeu _____
     def draw_game(self):
         
@@ -467,24 +487,6 @@ class App:
             self.game_init()
             self.is_init = True
         
-        if self.mothership_timer <= 0:
-            if self.mothership == None:
-                self.mothership_direction *= -1 #1 if self.mothership_direction == -1 else -1
-                self.mothership = VaisseauMere(WIDTH if self.mothership_direction == -1 else -5, 33, self.config.get("option.retro_mode"))
-
-            if self.mothership.rect.x < WIDTH and self.mothership_direction == 1:
-                self.mothership.move(self.mothership_direction)
-            elif self.mothership.rect.right > 0 and self.mothership_direction == -1:
-                self.mothership.move(self.mothership_direction)
-
-            else:
-                self.mothership = None
-                self.mothership_timer = MOTHERSHIP_SHOW
-        else:
-            self.mothership_timer -= 1
-
-        if self.mothership != None:
-            self.mothership.update()
 
         # Displaying text & decorations
         self._draw_text("SCORE<1>                HI-SCORE<2>", WHITE, self.font_8, None, 10, True)
@@ -493,7 +495,7 @@ class App:
         self._draw_text("CREDIT 00", WHITE, self.font_8, WIDTH-68, HEIGHT-20)
         self._draw_text(f"{self.remaining_life}", WHITE, self.font_8, 20, HEIGHT-20)
         pygame.draw.line(self.screen, WHITE if self.config.get("option.retro_mode") else GREEN, (0,HEIGHT-30), (WIDTH, HEIGHT-30))
-        
+            
         # Displaying the remaining life
         for x in range(30, 30+self.remaining_life*17, 17):
             self.screen.blit(self.life_icon, (x, HEIGHT-20))
@@ -506,6 +508,23 @@ class App:
         self.enemies.draw(self.screen)
 
         if self.playing_game:
+            
+            # Displaying the mothership
+            if self.mothership_timer <= 0:
+                if self.mothership == None:
+                    self.mothership_direction *= -1 #1 if self.mothership_direction == -1 else -1
+                    self.mothership = VaisseauMere(WIDTH if self.mothership_direction == -1 else -5, 33, self.config.get("option.retro_mode"))
+
+                if self.mothership.rect.x < WIDTH and self.mothership_direction == 1:
+                    self.mothership.move(self.mothership_direction)
+                elif self.mothership.rect.right > 0 and self.mothership_direction == -1:
+                    self.mothership.move(self.mothership_direction)
+
+                else:
+                    self.mothership = None
+                    self.mothership_timer = MOTHERSHIP_SHOW
+            else:
+                self.mothership_timer -= 1
         
             self.player.update()
                 
@@ -528,29 +547,33 @@ class App:
                 #print("_____ I MOVED!!! _____")
                 has_to_move = False
 
-            self.enemies.update(self.enemy_direction, len(all_enemies))
+            self.enemies.update(self.enemy_direction, len(all_enemies), self.config.get("option.ennemies_speed"))
             self.draw_projectile()
             self.check_projectile_collisions()
             self.check_shield_destruction()
             self.shoot_cooldown -= 1
+            
+            if self.mothership != None :
+                self.mothership.update()
 
-            """
+            
             if not self.enemies and self.remaining_life > 0 :
-                self.playing_game=False
-                #self.draw_victory()
+                self.playing_game = False
+                if self.config.get("option.highest_score") < self.score:
+                    self.config.put("option.highest_score", self.score)
+                self.draw_victory()
                 print("----- VICTORY ------")
-            if self.remaining_life <= 0 :#or :
-                self.playing_game=False
-                #self.draw_defeat()
-                print("------ DEFEAT LIFE ------")
-            if self.check_collision_shield:
-                self.playing_game=False
-                #self.draw_defeat()
-                print("------ DEFEAT BOUCLIER ------")
-        """
-        #else: 
-        
-           
+            if self.remaining_life <= 0 or self.check_collision_shield():
+                self.playing_game = False
+                self.draw_defeat()
+                print("------ DEFEAT ------")
+        else: 
+            if not self.enemies and self.remaining_life > 0 :
+                self.draw_victory()
+            elif self.remaining_life <= 0 or self.check_collision_shield():
+                self.draw_defeat()
+                
+    # _____ Affichage des projectiles _____     
     def draw_projectile(self):
         
         # Enemies' projectile
@@ -591,7 +614,8 @@ class App:
                 self.enemy_projectile_2.update_enemy()
             else: 
                 self.enemy_projectile_2 = None
-        
+    
+    # _____ Collision entre projectiles et ennemis _____ 
     def check_projectile_collisions(self):        
         
         for enemy in self.enemies:
@@ -609,6 +633,7 @@ class App:
                 self.mothership = None
                 self.explosion_sound.play()
                 self.mothership_timer = MOTHERSHIP_SHOW
+                self.mothership_killed += 1
 
         if self.enemy_projectile_1 != None:
                 if pygame.sprite.collide_rect(self.enemy_projectile_1, self.player):
@@ -623,8 +648,8 @@ class App:
                     self.remaining_life = self.remaining_life - 1
                     self.hit_sound.play()
                     #print("Joueur touché")
-                    
-           
+    
+    # _____ Calcul du score _____                       
     def calcul_score(self,enemy_type):
         if enemy_type == 'Poulpe':
             self.score += 10
@@ -634,7 +659,8 @@ class App:
             self.score += 30
         elif enemy_type == 'VaisseauMere':
             self.score += 100
-            
+    
+    # _____ Destruction des boucliers _____         
     def check_shield_destruction(self):
         for shield in self.shields:
             if self.enemy_projectile_1 != None:
@@ -654,13 +680,15 @@ class App:
                     if not self.config.get("option.unbreakable_shield"):
                         self.destroy_shield(self.player_projectile)
                     self.player_projectile = None
-
+    
+    # _____ Collision entre boucliers et ennemis _____
     def check_collision_shield(self):
         for enemy in self.enemies:
-            if pygame.sprite.spritecollideany(enemy, self.shields, collided = None) != None:
+            if enemy.rect.bottom >= 180:
                 return True
         return False
     
+    # _____ Création des boucliers _____
     def create_shield(self, x_start, y_start, offset_x):
         for row_index, row in enumerate(get_shield_shape()):
             for col_index,col in enumerate(row):
@@ -669,11 +697,13 @@ class App:
                     y = y_start + row_index * self.shield_size
                     shield = Shield(self.shield_size, x, y, WHITE if self.config.get("option.retro_mode") else GREEN)
                     self.shields.add(shield)
-                    
+    
+    # _____ Création de plusieurs boucliers _____     
     def create_multiple_shield(self, *offset, x_start, y_start):
         for offset_x in offset:
             self.create_shield(x_start, y_start, offset_x)
-        
+    
+    # _____ Explosion sur les boucliers _____ 
     def destroy_shield(self, projectile):
         shield_hit_list_random = pygame.sprite.spritecollide(projectile, self.shields, False, pygame.sprite.collide_rect_ratio(3))
         shield_hit_list_random_center = pygame.sprite.spritecollide(projectile, self.shields, False, pygame.sprite.collide_rect_ratio(2))
@@ -687,10 +717,31 @@ class App:
                 if pourcentage == 1:
                     shield.kill()
     
-    #def draw_defeat(self):
+    def draw_defeat(self):
+        game_over_screen_fade = pygame.Surface((WIDTH, HEIGHT))
+        game_over_screen_fade.fill((0, 0, 0))
+        game_over_screen_fade.set_alpha(160)
+        self.screen.blit(game_over_screen_fade, (0, 0))
         
-    #def draw_victory(self):
+        self._draw_text("GAME OVER", RED, self.font_14, None, HEIGHT/2-60, True)
+        self._draw_text(f"SCORE : {self.score}", WHITE, self.font_8, None, HEIGHT/2-20, True)
+        self._draw_text(f"VAISSEAU MERE DETRUIT : {self.mothership_killed}" if self.mothership_killed < 1 else f"VAISSEAUX MERE DETRUITS : {self.mothership_killed}", WHITE, self.font_8, None, HEIGHT/2-10, True)
+        self._draw_text("> RETOUR <", WHITE, self.font_8, None, HEIGHT/2+20, True)
         
+    def draw_victory(self):
+        game_over_screen_fade = pygame.Surface((WIDTH, HEIGHT))
+        game_over_screen_fade.fill((0, 0, 0))
+        game_over_screen_fade.set_alpha(160)
+        self.screen.blit(game_over_screen_fade, (0, 0))
+        
+        hi_score = self.config.get("option.highest_score")
+        self._draw_text("VICTOIRE", GREEN, self.font_14, None, HEIGHT/2-60, True)
+        self._draw_text(f"SCORE : {self.score}", WHITE, self.font_8, None, HEIGHT/2-20, True)
+        self._draw_text(f"HI-SCORE : {hi_score}", WHITE, self.font_8, None, HEIGHT/2-10, True)
+        self._draw_text(f"VAISSEAU MERE DETRUIT : {self.mothership_killed}" if self.mothership_killed < 1 else f"VAISSEAUX MERE DETRUITS : {self.mothership_killed}", WHITE, self.font_8, None, HEIGHT/2, True)
+        self._draw_text("> RETOUR <", WHITE, self.font_8, None, HEIGHT/2+30, True)
+    
+    # _____ Fonction utilitaire pour afficher du texte _____  
     def _draw_text(self, text, color, font, x, y, align_center=False):
         tmp_font = font.render(text, 0.2, color)
         if align_center:
@@ -698,6 +749,7 @@ class App:
         else:
             self.screen.blit(tmp_font, (x,y))
 
+# _____ Fonction principale _____
 if __name__ == "__main__":
     app = App()
     app.run()

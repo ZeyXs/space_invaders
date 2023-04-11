@@ -3,11 +3,11 @@
         "credits": []
     },
     "option": {
-        "number_of_life": 3,
-        "ennemies_speed": 2,
+        "number_of_life": 4,
+        "ennemies_speed": 1,
         "unbreakable_shield": false,
         "retro_mode": false,
         "music": true,
-        "highest_score": 0
+        "highest_score": 210
     }
 }

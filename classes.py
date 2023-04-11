@@ -15,8 +15,9 @@ class Entity(pygame.sprite.Sprite):
         self.rect = pygame.Rect(12, 8, 12, 8)
         self.rect.topleft = [pos_x,pos_y]
 
-    def update(self, direction):
+    def update(self, enemies_alive):
         self.current_sprite += 0.015
+        print(self.current_sprite)
 
         if self.current_sprite >= len(self.sprites):
             self.current_sprite = 0
@@ -62,12 +63,12 @@ class Crabe(Entity, pygame.sprite.Sprite):
             utils.replace_color(self.sprites[0], (0, 255, 255))
             utils.replace_color(self.sprites[1], (0, 255, 255))
             
-    def update(self, direction, enemies_alive):
-        super().update(direction)
+    def update(self, direction, enemies_alive, speed):
+        super().update(enemies_alive)
         self.direction_timer += 1
         if self.direction_timer >= (12*enemies_alive)//55:
             self.direction_timer = 0
-            self.rect.x += direction
+            self.rect.x += direction * (1 if speed == 1 else 1.5 if speed == 2 else 2)
         
 class Poulpe(Entity, pygame.sprite.Sprite):
     
@@ -82,12 +83,12 @@ class Poulpe(Entity, pygame.sprite.Sprite):
             utils.replace_color(self.sprites[0], (255, 0, 255))
             utils.replace_color(self.sprites[1], (255, 0, 255))
             
-    def update(self, direction, enemies_alive):
-        super().update(direction)
+    def update(self, direction, enemies_alive, speed):
+        super().update(enemies_alive)
         self.direction_timer += 1
         if self.direction_timer >= (12*enemies_alive)//55:
             self.direction_timer = 0
-            self.rect.x += direction
+            self.rect.x += direction * (1 if speed == 1 else 1.5 if speed == 2 else 2)
         
 class Meduse(Entity, pygame.sprite.Sprite):
     
@@ -102,12 +103,13 @@ class Meduse(Entity, pygame.sprite.Sprite):
             utils.replace_color(self.sprites[0], (255, 255, 0))
             utils.replace_color(self.sprites[1], (255, 255, 0))
             
-    def update(self, direction, enemies_alive):
-        super().update(direction)
+    def update(self, direction, enemies_alive, speed):
+        super().update(enemies_alive)
         self.direction_timer += 1
         if self.direction_timer >= (12*enemies_alive)//55:
             self.direction_timer = 0
-            self.rect.x += direction
+            self.rect.x += direction * (1 if speed == 1 else 1.5 if speed == 2 else 2)
+            print(direction * (1 if speed == 1 else 1.5 if speed == 2 else 2))
 
 class VaisseauMere(Entity, pygame.sprite.Sprite):
 
