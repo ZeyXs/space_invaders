@@ -16,7 +16,7 @@ class Entity(pygame.sprite.Sprite):
         self.rect.topleft = [pos_x,pos_y]
 
     def update(self, enemies_alive):
-        self.current_sprite += 0.015
+        self.current_sprite += (0.8/enemies_alive)
         print(self.current_sprite)
 
         if self.current_sprite >= len(self.sprites):
