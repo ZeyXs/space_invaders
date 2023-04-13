@@ -544,7 +544,6 @@ class App:
             if has_to_move:
                 for enemy in all_enemies:
                     enemy.move_down(self.enemy_direction)
-                #print("_____ I MOVED!!! _____")
                 has_to_move = False
 
             self.enemies.update(self.enemy_direction, len(all_enemies), self.config.get("option.ennemies_speed"))
@@ -562,11 +561,9 @@ class App:
                 if self.config.get("option.highest_score") < self.score:
                     self.config.put("option.highest_score", self.score)
                 self.draw_victory()
-                print("----- VICTORY ------")
             if self.remaining_life <= 0 or self.check_collision_shield():
                 self.playing_game = False
                 self.draw_defeat()
-                print("------ DEFEAT ------")
         else: 
             if not self.enemies and self.remaining_life > 0 :
                 self.draw_victory()
@@ -640,14 +637,12 @@ class App:
                     self.enemy_projectile_1 = None
                     self.remaining_life = self.remaining_life - 1
                     self.hit_sound.play()
-                    #print("Joueur touché")
         
         if self.enemy_projectile_2 != None:
                 if pygame.sprite.collide_rect(self.enemy_projectile_2, self.player):
                     self.enemy_projectile_2 = None
                     self.remaining_life = self.remaining_life - 1
                     self.hit_sound.play()
-                    #print("Joueur touché")
     
     # _____ Calcul du score _____                       
     def calcul_score(self,enemy_type):
