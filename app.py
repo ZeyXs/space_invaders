@@ -459,7 +459,7 @@ class App:
         else:
             utils.replace_color(self.life_icon, WHITE)
 
-            # - Ennemis
+        # Ennemis
         rang = 0
         for y in range(40, HEIGHT-130, 15):
             for x in range(25, WIDTH-30, 15):
