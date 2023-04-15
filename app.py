@@ -223,29 +223,6 @@ class App:
                                     if selected_option == "option.music":
                                         self.music_enable = new_value
 
-                            """
-                                if selected_option == "option.number_of_life":
-                                    if new_value != self.config.get("option.number_of_life"):
-                                        self.config.put("option.number_of_life", new_value)
-                                        self.color_opacity = 255
-                                elif selected_option == "option.ennemies_speed":
-                                    if new_value != self.config.get("option.ennemies_speed"):
-                                        self.config.put("option.ennemies_speed", new_value)
-                                        self.color_opacity = 255
-                                elif selected_option == "option.unbreakable_shield":
-                                    if new_value != self.config.get("option.unbreakable_shield"):
-                                        self.config.put("option.unbreakable_shield", new_value)
-                                        self.color_opacity = 255
-                                elif selected_option == "option.retro_mode":
-                                    if new_value != self.config.get("option.retro_mode"):
-                                        self.config.put("option.retro_mode", new_value)
-                                        self.color_opacity = 255
-                                else:
-                                    if new_value != self.config.get("option.music"):
-                                        self.config.put("option.music", new_value)
-                                        self.music_enable = new_value
-                                        self.color_opacity = 255
-                            """
                         # Touche RETURN pour le menu des credits   
                         elif self.menu_id == 3:
                             self.menu_id = 0
