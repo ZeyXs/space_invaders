@@ -393,10 +393,8 @@ class App:
             ["https://youtu.be/M7Hw7g8bssY",self.font_6,191],
             ["HTTPS://CONTEXTSENSITIVE.BANDCAMP.COM",self.font_6,200]
         ]
-        self.button_choice = 0
-        if self.button_choice == 0:
-            for i in range(9):
-                self._draw_text(str_credits[i][0], WHITE, str_credits[i][1] , None, str_credits[i][2], True)
+        for i in range(9):
+            self._draw_text(str_credits[i][0], WHITE, str_credits[i][1] , None, str_credits[i][2], True)
        
     # ____ Affichage des étoiles _____
     def draw_stars(self):
