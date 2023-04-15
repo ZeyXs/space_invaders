@@ -293,8 +293,8 @@ class App:
         if self.vy > 5 or self.vy < -5:
             self.dy *= -1
         
-        menu = [["> JOUER <","OPTIONS","CREDITS"],["JOUER","> OPTIONS <","CREDITS"],["JOUER","OPTIONS","> CREDITS <"]]    
         # Display text
+        menu = [["> JOUER <","OPTIONS","CREDITS"],["JOUER","> OPTIONS <","CREDITS"],["JOUER","OPTIONS","> CREDITS <"]]    
         for i in range(3):
             self._draw_text(menu[self.pointeur_vert][i], WHITE, self.font_14, None, 140+(i*30), True)
     
@@ -398,7 +398,7 @@ class App:
             for i in range(9):
                 self._draw_text(str_credits[i][0], WHITE, str_credits[i][1] , None, str_credits[i][2], True)
        
-    # ____ Affuchage des étoiles _____
+    # ____ Affichage des étoiles _____
     def draw_stars(self):
         for star in self.star_field_slow:
             star[1] += 0.5
