@@ -52,7 +52,7 @@ class App:
         self.font_14 = pygame.font.Font("./assets/fonts/space_invaders.ttf", 16)
 
         self.logo = pygame.image.load('./assets/textures/title.png').convert_alpha()
-        self.logo = pygame.transform.scale(self.logo,(193,83))
+        self.logo = pygame.transform.scale(self.logo, (193,83))
         
         self.life_icon = pygame.image.load('./assets/textures/player.png').convert_alpha()
 
@@ -717,6 +717,7 @@ class App:
                 if pourcentage == 1:
                     shield.kill()
     
+    # _____ Affichage de l'écran de Game Over _____
     def draw_defeat(self):
         game_over_screen_fade = pygame.Surface((WIDTH, HEIGHT))
         game_over_screen_fade.fill((0, 0, 0))
@@ -728,6 +729,7 @@ class App:
         self._draw_text(f"VAISSEAU MERE DETRUIT : {self.mothership_killed}" if self.mothership_killed < 1 else f"VAISSEAUX MERE DETRUITS : {self.mothership_killed}", WHITE, self.font_8, None, HEIGHT/2-10, True)
         self._draw_text("> RETOUR <", WHITE, self.font_8, None, HEIGHT/2+20, True)
         
+    # _____ Affichage de l'écran de victoire _____
     def draw_victory(self):
         game_over_screen_fade = pygame.Surface((WIDTH, HEIGHT))
         game_over_screen_fade.fill((0, 0, 0))
