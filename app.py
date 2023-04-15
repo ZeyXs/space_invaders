@@ -108,7 +108,16 @@ class App:
         self.dy = 0.09
         self.vy = 0
         
-        self.options = [None, "option.number_of_life", "option.ennemies_speed", "option.unbreakable_shield", "option.retro_mode", "option.music"]
+        self.options = [
+            None,
+            "option.number_of_life",
+            "option.ennemies_speed",
+            "option.unbreakable_shield",
+            "option.retro_mode",
+            "option.music"
+        ]
+        
+
         self.color_opacity = 0
 
     # _____ Lancement du jeu _____
@@ -122,7 +131,7 @@ class App:
         #   - 3 = Credits
 
         self.pointeur_vert = 0
-        self.pointeur_hori = 1
+        self.pointeur_hori = 0
         
         while self.running:
             self.clock.tick(FPS)
@@ -132,7 +141,14 @@ class App:
                 self.current_menu_options = [[0],[0],[0]]
 
             elif self.menu_id == 2:
-                self.current_menu_options = [[0], [1,2,3,4], [1,2,3], [True,False], [True,False], [True,False]]
+                self.current_menu_options = [
+                    [0],
+                    [1,2,3,4],
+                    [1,2,3],
+                    [True,False],
+                    [True,False],
+                    [True,False]
+                ]
             
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -154,7 +170,7 @@ class App:
                             self.pointeur_vert = len(self.current_menu_options)-1
                         if self.menu_id == 2:
                             if self.options[self.pointeur_vert] != None:
-                                self.pointeur_hori = self.config.get(self.options[self.pointeur_vert])
+                                self.pointeur_hori = self.current_menu_options[self.pointeur_vert].index(self.config.get(self.options[self.pointeur_vert]))
 
                     elif event.key == pygame.K_DOWN:
                         self.pointeur_vert += 1
@@ -162,7 +178,7 @@ class App:
                             self.pointeur_vert = 0
                         if self.menu_id == 2:
                             if self.options[self.pointeur_vert] != None:
-                                self.pointeur_hori = self.config.get(self.options[self.pointeur_vert])
+                                self.pointeur_hori = self.current_menu_options[self.pointeur_vert].index(self.config.get(self.options[self.pointeur_vert]))
                         
                     elif event.key == pygame.K_LEFT:
                         if self.menu_id == 2:
@@ -198,7 +214,16 @@ class App:
                                 self.menu_id = 0
                             if self.options[self.pointeur_vert] != None:
                                 selected_option = self.options[self.pointeur_vert]
-                                new_value = self.current_menu_options[self.pointeur_vert][self.pointeur_hori-1]
+                                new_value = self.current_menu_options[self.pointeur_vert][self.pointeur_hori]
+
+                                if new_value != self.config.get(selected_option):
+                                    self.config.put(selected_option, new_value)
+                                    self.color_opacity = 255
+
+                                    if selected_option == "option.music":
+                                        self.music_enable = new_value
+
+                            """
                                 if selected_option == "option.number_of_life":
                                     if new_value != self.config.get("option.number_of_life"):
                                         self.config.put("option.number_of_life", new_value)
@@ -220,7 +245,7 @@ class App:
                                         self.config.put("option.music", new_value)
                                         self.music_enable = new_value
                                         self.color_opacity = 255
-                        
+                            """
                         # Touche RETURN pour le menu des credits   
                         elif self.menu_id == 3:
                             self.menu_id = 0
@@ -307,11 +332,11 @@ class App:
         # NOMBRES DE VIES
         self._draw_text("> NOMBRE DE VIES : <" if self.pointeur_vert == 1 else "NOMBRE DE VIES :", WHITE, self.font_8, None, 80, True)
         if self.pointeur_vert == 1:
-            if self.pointeur_hori == 1:
+            if self.pointeur_hori == 0:
                 self._draw_text("[ 1 ] / 2 / 3 / 4", GRAY, self.font_8, None, 90, True)
-            elif self.pointeur_hori == 2:
+            elif self.pointeur_hori == 1:
                 self._draw_text("1 / [ 2 ] / 3 / 4", GRAY, self.font_8, None, 90, True)
-            elif self.pointeur_hori == 3:
+            elif self.pointeur_hori == 2:
                 self._draw_text("1 / 2 / [ 3 ] / 4", GRAY, self.font_8, None, 90, True)
             else:
                 self._draw_text("1 / 2 / 3 / [ 4 ]", GRAY, self.font_8, None, 90, True)
@@ -329,9 +354,9 @@ class App:
         # VITESSE DES ENNEMIS
         self._draw_text("> VITESSE DES ENNEMIS : <" if self.pointeur_vert == 2 else "VITESSE DES ENNEMIS :", WHITE, self.font_8, None, 110, True)
         if self.pointeur_vert == 2:
-            if self.pointeur_hori == 1:
+            if self.pointeur_hori == 0:
                 self._draw_text("[ LENT ] / MOYEN / RAPIDE", GRAY, self.font_8, None, 120, True)
-            elif self.pointeur_hori == 2:
+            elif self.pointeur_hori == 1:
                 self._draw_text("LENT / [ MOYEN ] / RAPIDE", GRAY, self.font_8, None, 120, True)
             else:
                 self._draw_text("LENT / MOYEN / [ RAPIDE ]", GRAY, self.font_8, None, 120, True)
@@ -347,7 +372,7 @@ class App:
         # BOUCLIERS INCASSABLES
         self._draw_text("> BOUCLIERS INCASSABLES : <" if self.pointeur_vert == 3 else "BOUCLIERS INCASSABLES :", WHITE, self.font_8, None, 140, True)
         if self.pointeur_vert == 3:
-            self._draw_text("[ OUI ] / NON" if self.pointeur_hori == 1 else "OUI / [ NON ]", GRAY, self.font_8, None, 150, True)
+            self._draw_text("[ OUI ] / NON" if self.pointeur_hori == 0 else "OUI / [ NON ]", GRAY, self.font_8, None, 150, True)
         else:
             choice = self.config.get("option.unbreakable_shield")
             self._draw_text("[ OUI ] / NON" if choice else "OUI / [ NON ]", GRAY, self.font_8, None, 150, True)
@@ -355,7 +380,7 @@ class App:
         # MODE RETRO
         self._draw_text("> MODE RETRO : <" if self.pointeur_vert == 4 else "MODE RETRO :", WHITE, self.font_8, None, 170, True)
         if self.pointeur_vert == 4:
-            self._draw_text("[ OUI ] / NON" if self.pointeur_hori == 1 else "OUI / [ NON ]", GRAY, self.font_8, None, 180, True)
+            self._draw_text("[ OUI ] / NON" if self.pointeur_hori == 0 else "OUI / [ NON ]", GRAY, self.font_8, None, 180, True)
         else:
             choice = self.config.get("option.retro_mode")
             self._draw_text("[ OUI ] / NON" if choice else "OUI / [ NON ]", GRAY, self.font_8, None, 180, True)
@@ -363,7 +388,7 @@ class App:
         # MUSIQUE
         self._draw_text("> MUSIQUE : <" if self.pointeur_vert == 5 else "MUSIQUE :", WHITE, self.font_8, None, 200, True)
         if self.pointeur_vert == 5:
-            self._draw_text("[ OUI ] / NON" if self.pointeur_hori == 1 else "OUI / [ NON ]", GRAY, self.font_8, None, 210, True)
+            self._draw_text("[ OUI ] / NON" if self.pointeur_hori == 0 else "OUI / [ NON ]", GRAY, self.font_8, None, 210, True)
         else:
             choice = self.config.get("option.music")
             self._draw_text("[ OUI ] / NON" if choice else "OUI / [ NON ]", GRAY, self.font_8, None, 210, True)
