@@ -712,7 +712,7 @@ class App:
                 if pourcentage == 1:
                     shield.kill()
     
-    # _____ Affichage de l'écran de Game Over _____
+    # _____ Affichage de l'écran du Game Over _____
     def draw_defeat(self):
         game_over_screen_fade = pygame.Surface((WIDTH, HEIGHT))
         game_over_screen_fade.fill((0, 0, 0))
