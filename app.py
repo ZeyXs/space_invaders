@@ -561,13 +561,13 @@ class App:
                 if self.config.get("option.highest_score") < self.score:
                     self.config.put("option.highest_score", self.score)
                 self.draw_victory()
-            if self.remaining_life <= 0 or self.check_collision_shield():
+            if self.remaining_life <= 0 or self.check_enemy_collision_shield():
                 self.playing_game = False
                 self.draw_defeat()
         else: 
             if not self.enemies and self.remaining_life > 0 :
                 self.draw_victory()
-            elif self.remaining_life <= 0 or self.check_collision_shield():
+            elif self.remaining_life <= 0 or self.check_enemy_collision_shield():
                 self.draw_defeat()
                 
     # _____ Affichage des projectiles _____     
@@ -677,7 +677,7 @@ class App:
                     self.player_projectile = None
     
     # _____ Collision entre boucliers et ennemis _____
-    def check_collision_shield(self):
+    def check_enemy_collision_shield(self):
         for enemy in self.enemies:
             if enemy.rect.bottom >= 180:
                 return True
