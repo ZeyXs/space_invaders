@@ -4,7 +4,7 @@
     },
     "option": {
         "number_of_life": 4,
-        "ennemies_speed": 1,
+        "ennemies_speed": 3,
         "unbreakable_shield": false,
         "retro_mode": false,
         "music": true,
