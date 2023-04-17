@@ -1,7 +1,7 @@
 # SPACE INVADERS
 
 => Réplique du jeu Space Invaders de 1978 pour le projet de première année du CMI
-=> Créer par : Laure VAN LERBERGHE, Basile GAUTTRON & Robin DEROCH 
+=> Créé par : Laure VAN LERBERGHE, Basile GAUTTRON & Robin DEROCH 
 
 # Comment lancer le jeu ?
 
