@@ -487,7 +487,6 @@ class App:
             self.game_init()
             self.is_init = True
         
-
         # Displaying text & decorations
         self._draw_text("SCORE<1>                HI-SCORE<2>", WHITE, self.font_8, None, 10, True)
         self._draw_text(f"{self.score:04d}", WHITE, self.font_8, 45, 21)

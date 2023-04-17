@@ -62,7 +62,7 @@ class Crabe(Entity, pygame.sprite.Sprite):
         self.direction_timer += 1
         if self.direction_timer >= (12*enemies_alive)//55:
             self.direction_timer = 0
-            self.rect.x += direction * (1 if speed == 1 else 1.5 if speed == 2 else 2)
+            self.rect.x += direction * (1 if speed == 1 else 2 if speed == 2 else 3)
         
 class Poulpe(Entity, pygame.sprite.Sprite):
     
@@ -82,7 +82,7 @@ class Poulpe(Entity, pygame.sprite.Sprite):
         self.direction_timer += 1
         if self.direction_timer >= (12*enemies_alive)//55:
             self.direction_timer = 0
-            self.rect.x += direction * (1 if speed == 1 else 1.5 if speed == 2 else 2)
+            self.rect.x += direction * (1 if speed == 1 else 2 if speed == 2 else 3)
         
 class Meduse(Entity, pygame.sprite.Sprite):
     
@@ -102,7 +102,7 @@ class Meduse(Entity, pygame.sprite.Sprite):
         self.direction_timer += 1
         if self.direction_timer >= (12*enemies_alive)//55:
             self.direction_timer = 0
-            self.rect.x += direction * (1 if speed == 1 else 1.5 if speed == 2 else 2)
+            self.rect.x += direction * (1 if speed == 1 else 2 if speed == 2 else 3)
 
 class VaisseauMere(Entity, pygame.sprite.Sprite):
 
